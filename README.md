@@ -28,7 +28,7 @@ npm start
 ```
 Runs on port `3000`. Set `REACT_APP_API_URL` in `.env` for the backend URL.
 
-## Backend (Express)
+## Backend (Spring Boot)
 
 REST API for managing to-do items.
 
@@ -40,13 +40,12 @@ REST API for managing to-do items.
 | PATCH | `/todos/:id` | Mark as completed |
 | DELETE | `/todos/:id` | Delete a to-do |
 
-**Tech Stack:** Express.js, in-memory storage, Jest/Mocha for testing
+**Tech Stack:** Java, Spring Boot, in-memory storage, JUnit for testing
 
 **Run locally:**
 ```bash
 cd backend
-npm install
-npm start
+./mvnw spring-boot:run
 ```
 Runs on port `4000`.
 
