@@ -38,8 +38,8 @@ jobs:
       with:
         images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/todo-app-backend
         tags: |
-          type=ref,event=branch,replace=/,-        # branch dev/feature-x → dev-feature-x
-          type=sha,prefix={{branch}}-
+          type=ref,event=branch
+          type=sha
           type=raw,value=latest,enable={{is_default_branch}}
 
     - name: Build and Push Backend Docker Image
@@ -80,8 +80,8 @@ jobs:
       with:
         images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/todo-app-frontend
         tags: |
-          type=ref,event=branch,replace=/,-        # branch dev/feature-x → dev-feature-x
-          type=sha,prefix={{branch}}-
+          type=ref,event=branch
+          type=sha
           type=raw,value=latest,enable={{is_default_branch}}
 
     - name: Build and Push Frontend Docker Image
