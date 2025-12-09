@@ -6,8 +6,13 @@ RUN mvn -q -e -B dependency:go-offline
 COPY src ./src
 RUN mvn -q -e -B package -DskipTests
 
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
-EXPOSE 4000
-ENTRYPOINT ["java", "-jar", "app.jar"]
+EXPOSE 8080
+ENTRYPOINT ["java", \
+  "-Xmx512m", \
+  "-Xms256m", \
+  "-XX:+UseG1GC", \
+  "-jar", \
+  "app.jar"]
