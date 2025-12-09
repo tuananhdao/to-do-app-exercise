@@ -39,18 +39,7 @@ public class TodoController {
         return ResponseEntity.ok(APIResponse.success(saved));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<APIResponse<String>> deleteTodo(@PathVariable Long id) {
-        APIResponse<String> response = todoService.deleteTodo(id);
 
-        // Nếu code = 404 → trả về 404
-        if (response.getCode() == 404) {
-            return ResponseEntity.status(404).body(response);
-        }
-
-        // Ngược lại trả 200
-        return ResponseEntity.ok(response);
-    }
 
 
 

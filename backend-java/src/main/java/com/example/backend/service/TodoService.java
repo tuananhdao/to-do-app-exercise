@@ -36,21 +36,9 @@ public class TodoService {
                 todo.getSteps().add(step);
             }
         }
-
         return todoRepository.save(todo);
     }
-//test delete
-public APIResponse<String> deleteTodo(Long id) {
 
-    return todoRepository.findById(id)
-            .map(todo -> {
-                todoRepository.delete(todo);
-                return APIResponse.success("Deleted successfully");
-            })
-            .orElseGet(() ->
-                    APIResponse.notFound("Cannot delete non-existing todo")
-            );
-}
 
 
 }
