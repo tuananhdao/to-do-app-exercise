@@ -8,3 +8,29 @@ GET http://localhost:8080/api/v1/demo
 Accept: application/json
 
 
+### Test TodoController - GET all todos
+
+GET http://localhost:8080/api/v1/todos
+Accept: application/json
+
+
+### Test TodoController - POST create todo (success)
+
+POST http://localhost:8080/api/v1/todos
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Học Spring Boot",
+  "completed": false,
+  "steps": [
+    {
+      "items": "Tạo project",
+      "completed": true
+    },
+    {
+      "items": "Viết API CRUD",
+      "completed": false
+    }
+  ]
+}
