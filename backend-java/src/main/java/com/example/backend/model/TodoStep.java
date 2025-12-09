@@ -16,7 +16,7 @@ public class TodoStep {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String text;
+    private String items;
 
     private boolean completed;
 
