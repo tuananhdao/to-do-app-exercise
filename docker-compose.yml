@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   backend:
-    image: ghcr.io/hanhcpp04/todo-app-backend:lastest
+    image: ghcr.io/hanhcpp04/todo-app-backend:latest
     container_name: todo-backend
     ports:
       - "8080:8080"
@@ -18,7 +18,7 @@ services:
       retries: 3
       start_period: 40s
   frontend:
-    image: ghcr.io/hanhcpp04/todo-app-frontend:lastest
+    image: ghcr.io/hanhcpp04/todo-app-frontend:latest
     container_name: todo-frontend
     ports:
       - "5173:5173"
