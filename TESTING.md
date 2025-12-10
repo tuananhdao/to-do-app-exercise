@@ -16,7 +16,7 @@ src/test/java/com/example/backend/
 └── repository/       # Repository tests - Test database operations
 ```
 
-### Setup Test Environment (CHỈ LÀM 1 LẦN)
+### Setup Test Environment (CHỈ LÀM 1 LẦN) set ròi nhé
 
 #### 1. Tạo file cấu hình test
 Tạo file `src/test/resources/application-test.properties`:
