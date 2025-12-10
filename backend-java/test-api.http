@@ -1,5 +1,6 @@
-### Test HelloController endpoints
+### Base: container mapped to localhost:8080
 
+### HelloController
 GET http://localhost:8080/api/v1/hello
 Accept: application/json
 
@@ -8,3 +9,126 @@ GET http://localhost:8080/api/v1/demo
 Accept: application/json
 
 
+### TodoController - GET all todos
+GET http://localhost:8080/api/v1/todos
+Accept: application/json
+
+
+### TodoController - POST create todo (success)
+POST http://localhost:8080/api/v1/todos
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Học Spring Boot",
+  "completed": false,
+  "steps": [
+    { "items": "Tạo project", "completed": true },
+    { "items": "Viết API CRUD", "completed": false }
+  ]
+}
+
+
+### TodoController - POST create todo (title empty -> 400)
+POST http://localhost:8080/api/v1/todos
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "",
+  "completed": false
+}
+
+
+### TodoController - POST create todo (step items empty -> 400)
+POST http://localhost:8080/api/v1/todos
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Todo with bad step",
+  "steps": [
+    { "items": "", "completed": false }
+  ]
+}
+
+
+### TodoController - PATCH update todo title
+PATCH http://localhost:8080/api/v1/todos/1
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Updated Todo Title"
+}
+
+
+### TodoController - PATCH mark todo as completed
+PATCH http://localhost:8080/api/v1/todos/1
+Content-Type: application/json
+Accept: application/json
+
+{
+  "completed": true
+}
+
+
+### TodoController - PATCH todo not found (404)
+PATCH http://localhost:8080/api/v1/todos/999
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Test"
+}
+
+
+### TodoStep - PATCH update step (items + completed)
+PATCH http://localhost:8080/api/v1/todos/items/1
+Content-Type: application/json
+Accept: application/json
+
+{
+  "text": "Updated Step",
+  "completed": true
+}
+
+
+### TodoStep - PATCH update step not found (404)
+PATCH http://localhost:8080/api/v1/todos/items/999
+Content-Type: application/json
+Accept: application/json
+
+{
+  "text": "X"
+}
+
+
+### TodoStep - PATCH validation (empty text -> 400)
+PATCH http://localhost:8080/api/v1/todos/items/1
+Content-Type: application/json
+Accept: application/json
+
+{
+  "text": ""
+}
+
+
+### TodoStep - DELETE step
+DELETE http://localhost:8080/api/v1/todos/items/1
+Accept: application/json
+
+
+### TodoStep - DELETE step not found (404)
+DELETE http://localhost:8080/api/v1/todos/items/999
+Accept: application/json
+
+
+### TodoController - DELETE todo
+DELETE http://localhost:8080/api/v1/todos/1
+Accept: application/json
+
+
+### TodoController - DELETE todo not found (404)
+DELETE http://localhost:8080/api/v1/todos/999
+Accept: application/json
