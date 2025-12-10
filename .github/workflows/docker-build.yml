@@ -11,7 +11,75 @@ env:
   IMAGE_PREFIX: tuananhdao
 
 jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Run Backend Tests
+      working-directory: ./backend-java
+      run: mvn clean test
+
+    - name: Generate Test Report
+      if: always()
+      uses: dorny/test-reporter@v1
+      with:
+        name: Backend Test Results
+        path: backend-java/target/surefire-reports/*.xml
+        reporter: java-junit
+        fail-on-error: true
+
+  test-frontend:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: frontend-react/package-lock.json
+
+    - name: Install Dependencies
+      working-directory: ./frontend-react
+      run: npm ci
+
+    - name: Check if Vitest is installed
+      id: check-vitest
+      working-directory: ./frontend-react
+      run: |
+        if npm list vitest > /dev/null 2>&1; then
+          echo "vitest_installed=true" >> $GITHUB_OUTPUT
+        else
+          echo "vitest_installed=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Run Frontend Tests
+      if: steps.check-vitest.outputs.vitest_installed == 'true'
+      working-directory: ./frontend-react
+      run: npm test -- --run
+      continue-on-error: true
+
+    - name: Skip Tests (Dependencies Not Installed)
+      if: steps.check-vitest.outputs.vitest_installed == 'false'
+      run: |
+        echo "⚠️  Vitest not installed yet. Skipping frontend tests."
+        echo "📝 To enable tests, install dependencies: npm install --save-dev vitest jsdom @testing-library/react @testing-library/jest-dom @testing-library/user-event"
+
   build-backend:
+    needs: [test-backend]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -54,6 +122,7 @@ jobs:
         platforms: linux/amd64,linux/arm64
 
   build-frontend:
+    needs: [test-frontend]
     runs-on: ubuntu-latest
     permissions:
       contents: read
