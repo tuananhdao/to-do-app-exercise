@@ -1,9 +1,16 @@
 package com.example.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import lombok.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "todos")
 public class Todo {
@@ -16,6 +23,7 @@ public class Todo {
     private boolean completed;
 
     @OneToMany(mappedBy = "todo", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<TodoStep> steps = new ArrayList<>();
 
 }
