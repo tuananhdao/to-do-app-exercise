@@ -2,6 +2,7 @@ package com.example.backend.controller;
 
 import com.example.backend.model.Todo;
 import com.example.backend.repository.TodoRepository;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -106,6 +107,7 @@ public class TodoControllerIntegrationTest {
         assertFalse(todos.get(0).isCompleted());
     }
 
+    @Transactional
     @Test
     @DisplayName("Post Todo voi title va steps hop le")
     void test_createTodo_shouldReturn200_withSteps() throws Exception {
