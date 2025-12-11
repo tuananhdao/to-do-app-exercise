@@ -136,6 +136,8 @@ Accept: application/json
 
 ### AIController - POST voice-to-text (success)
 POST http://localhost:8080/api/v1/voice-to-text
+### TodoStep - POST add new step to existing todo (success)
+POST http://localhost:8080/api/v1/todos/1/items
 Content-Type: application/json
 Accept: application/json
 
@@ -147,6 +149,13 @@ Accept: application/json
 
 ### AIController - POST voice-to-text (with mp3 format)
 POST http://localhost:8080/api/v1/voice-to-text
+  "items": "Thêm step mới vào todo 1",
+  "completed": false
+}
+
+
+### TodoStep - POST add new step with empty items -> 400
+POST http://localhost:8080/api/v1/todos/1/items
 Content-Type: application/json
 Accept: application/json
 
@@ -158,6 +167,13 @@ Accept: application/json
 
 ### AIController - POST voice-to-text (empty audioBase64 -> 400)
 POST http://localhost:8080/api/v1/voice-to-text
+  "items": "",
+  "completed": false
+}
+
+
+### TodoStep - POST add new step to non-existing todo -> 404
+POST http://localhost:8080/api/v1/todos/999/items
 Content-Type: application/json
 Accept: application/json
 
@@ -213,4 +229,7 @@ Content-Type: application/json
 Accept: application/json
 
 {
+}
+  "items": "Step cho todo không tồn tại",
+  "completed": false
 }

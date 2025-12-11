@@ -55,6 +55,25 @@ public class TodoService {
         return todoRepository.save(todo);
     }
 
+    public Optional<Todo> addStep(Long todoId, TodoStepRequestDTO request) {
+
+        if (request.getItems() == null || request.getItems().trim().isEmpty()) {
+            throw new IllegalArgumentException("Step items must not be empty");
+        }
+
+        return todoRepository.findById(todoId)
+                .map(todo -> {
+                    TodoStep step = new TodoStep();
+                    step.setItems(request.getItems());
+                    step.setCompleted(Boolean.TRUE.equals(request.getCompleted()));
+                    step.setTodo(todo);
+                    todo.getSteps().add(step);
+                    Todo saved = todoRepository.save(todo);
+                    return saved;
+                });
+    }
+
+
     public Optional<Todo> updateTodo(Long id, TodoUpdateDTO updateDTO) {
         Optional<Todo> optionalTodo = todoRepository.findById(id);
         
