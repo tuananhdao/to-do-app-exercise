@@ -49,7 +49,7 @@ import static org.mockito.Mockito.*;
  * - deleteTodo(): 2 test cases
  * - updateStep(): 5 test cases
  * - deleteStep(): 3 test cases
- * Total: 20 test cases
+ * Total: 21 test cases
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("TodoService Unit Tests - getAllTodos, createTodo, updateTodo, deleteTodo, updateStep, deleteStep")
@@ -536,7 +536,9 @@ public class TodoServiceTest {
         existingStep.setCompleted(false);
         existingStep.setTodo(parentTodo);
 
-        parentTodo.getSteps().add(existingStep);
+        List<TodoStep> steps = new ArrayList<>();
+        steps.add(existingStep);
+        parentTodo.setSteps(steps);
 
         TodoStepUpdateDTO updateDTO = new TodoStepUpdateDTO();
         updateDTO.setItems("New Items");
@@ -580,7 +582,9 @@ public class TodoServiceTest {
         existingStep.setCompleted(false);
         existingStep.setTodo(parentTodo);
 
-        parentTodo.getSteps().add(existingStep);
+        List<TodoStep> steps = new ArrayList<>();
+        steps.add(existingStep);
+        parentTodo.setSteps(steps);
 
         TodoStepUpdateDTO updateDTO = new TodoStepUpdateDTO();
         updateDTO.setItems(null);
@@ -750,7 +754,9 @@ public class TodoServiceTest {
         existingStep.setItems("Step to delete");
         existingStep.setTodo(parentTodo);
 
-        parentTodo.getSteps().add(existingStep);
+        List<TodoStep> steps = new ArrayList<>();
+        steps.add(existingStep);
+        parentTodo.setSteps(steps);
 
         when(todoStepRepository.findById(stepId)).thenReturn(Optional.of(existingStep));
         when(todoRepository.save(any(Todo.class))).thenReturn(parentTodo);
