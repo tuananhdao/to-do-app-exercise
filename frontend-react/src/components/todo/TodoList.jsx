@@ -11,9 +11,14 @@ export default function TodoList({ todos, onToggle, onToggleStep, onDelete, onUp
         );
     }
 
+    const ordered = [...todos].sort((a, b) => {
+        if (a.completed !== b.completed) return a.completed ? 1 : -1; // completed xuống cuối
+        return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
+    });
+
     return (
         <div className="todo-list">
-            {todos.map(todo => (
+            {ordered.map(todo => (
                 <TodoItem
                     key={todo.id}
                     todo={todo}

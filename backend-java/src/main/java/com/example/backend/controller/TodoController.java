@@ -10,7 +10,6 @@ import com.example.backend.service.TodoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -59,6 +58,44 @@ public class TodoController {
             return ResponseEntity
                     .internalServerError()
                     .body(APIResponse.error("Failed to create todo: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{todoId}/items")
+    public ResponseEntity<APIResponse<Todo>> addStepToTodo(
+            @PathVariable Long todoId,
+            @RequestBody TodoStepRequestDTO request
+    ) {
+
+        if (request.getItems() == null || request.getItems().isBlank()) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(APIResponse.error("Step items must not be empty"));
+        }
+
+
+        if (request.getCompleted() == null) {
+            request.setCompleted(false);
+        }
+
+        try {
+            var updatedTodoOpt = todoService.addStep(todoId, request);
+
+            if (updatedTodoOpt.isEmpty()) {
+                return ResponseEntity
+                        .status(404)
+                        .body(APIResponse.notFound("Todo not found with id: " + todoId));
+            }
+
+            return ResponseEntity.ok(APIResponse.success(updatedTodoOpt.get()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(APIResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .internalServerError()
+                    .body(APIResponse.error("Failed to add step: " + e.getMessage()));
         }
     }
 
