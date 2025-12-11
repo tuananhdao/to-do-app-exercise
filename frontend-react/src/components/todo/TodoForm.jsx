@@ -9,6 +9,7 @@ export default function TodoForm({ onAdd }) {
         e.preventDefault();
         if (text.trim()) {
             const validSteps = stepInputs.filter(s => s.trim());
+            // Pass title (not text) and validSteps (array of strings)
             onAdd(text.trim(), validSteps);
             setText('');
             setStepInputs([]);
@@ -50,8 +51,8 @@ export default function TodoForm({ onAdd }) {
                         if (e.key === 'Enter') {
                             handleSubmit(e);
                         }
-                    }}aria-label="Add a task"
-                    
+                    }} aria-label="Add a task"
+
                 />
             </div>
 
@@ -74,7 +75,7 @@ export default function TodoForm({ onAdd }) {
                     </button>
                 </div>
             ))}
-            
+
             <div className="add-step-inline" onClick={addStepInput}>
                 + Add step
             </div>
