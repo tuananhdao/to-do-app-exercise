@@ -1,3 +1,4 @@
 # H2 database file
 data/
 .idea/
+.env

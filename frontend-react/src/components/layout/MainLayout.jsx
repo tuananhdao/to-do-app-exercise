@@ -1,37 +1,19 @@
 import { Outlet } from 'react-router-dom';
-import './MainLayout.css';
 
 export default function MainLayout() {
-    const handleVoiceInput = () => {
-        // TODO: Implement voice input functionality
-        console.log('Voice input clicked');
-        alert('Voice input feature - Coming soon!');
-    };
-
     return (
-        <div className="app-container">
-            <div className="notebook">
-                <header className="app-header">
-                    <div className="header-content">
-                        <h1 className="logo">
-                            <span className="logo-main">To do list</span>
-                            <span className="logo-tag">app</span>
-                        </h1>
-                        <button 
-                            className="voice-btn" 
-                            onClick={handleVoiceInput}
-                            aria-label="Voice input"
-                            title="Add task by voice"
-                        >
-                            🎤
-                        </button>
-                    </div>
-                </header>
+        <div className="h-screen flex flex-col bg-gray-50">
+            <header className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
+                <div className="px-6 py-4">
+                    <h1 className="text-2xl font-bold text-gray-900">
+                        Todo List
+                    </h1>
+                </div>
+            </header>
 
-                <main className="main-content">
-                    <Outlet />
-                </main>
-            </div>
+            <main className="flex-1 overflow-hidden">
+                <Outlet />
+            </main>
         </div>
     );
 }

@@ -2,7 +2,7 @@ import TodoList from '../components/todo/TodoList';
 import useTodos from '../hooks/useTodos';
 
 export default function ActiveTodos() {
-    const { todos, loading, error, toggleTodo, toggleStep, deleteTodo, updateTodo } = useTodos();
+    const { todos, loading, error, toggleTodo, toggleStep, deleteTodo, updateTodo, addItemToTodo, deleteStepFromTodo } = useTodos();
     const activeTodos = todos.filter(todo => !todo.completed);
 
     if (loading) {
@@ -36,6 +36,8 @@ export default function ActiveTodos() {
                 onToggleStep={toggleStep}
                 onDelete={deleteTodo}
                 onUpdate={updateTodo}
+                onAddItem={addItemToTodo}
+                onDeleteStep={deleteStepFromTodo}
             />
 
             {activeTodos.length === 0 && (
