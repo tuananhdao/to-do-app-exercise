@@ -75,9 +75,8 @@ export default function useTodos() {
       if (!step) return;
 
       const newCompleted = !step.completed;
-      // API expects 'text' in request, but returns 'items' in response
       await todoService.updateStep(stepId, {
-        text: step.items,
+        items: step.items,
         completed: newCompleted,
       });
 
@@ -90,6 +89,23 @@ export default function useTodos() {
     }
   };
 
+  // Update step text/items
+  const updateStep = async (stepId, newItems) => {
+    try {
+      setError(null);
+      await todoService.updateStep(stepId, {
+        items: newItems,
+      });
+      
+      // Refresh todos to get updated state from backend
+      await fetchTodos();
+    } catch (err) {
+      setError(err.message);
+      console.error('Failed to update step:', err);
+      throw err;
+    }
+  };
+
   const deleteTodo = async (id) => {
     try {
       setError(null);
@@ -98,6 +114,37 @@ export default function useTodos() {
     } catch (err) {
       setError(err.message);
       console.error('Failed to delete todo:', err);
+      throw err;
+    }
+  };
+
+  // Add item/step to existing todo
+  const addItemToTodo = async (todoId, itemText) => {
+    try {
+      setError(null);
+      const itemData = {
+        items: itemText,
+        completed: false,
+      };
+      const updatedTodo = await todoService.addItemToTodo(todoId, itemData);
+      setTodos(todos.map(t => t.id === todoId ? updatedTodo : t));
+    } catch (err) {
+      setError(err.message);
+      console.error('Failed to add item to todo:', err);
+      throw err;
+    }
+  };
+
+  // Delete individual step
+  const deleteStepFromTodo = async (stepId) => {
+    try {
+      setError(null);
+      await todoService.deleteStep(stepId);
+      // Refresh todos to get updated state from backend
+      await fetchTodos();
+    } catch (err) {
+      setError(err.message);
+      console.error('Failed to delete step:', err);
       throw err;
     }
   };
@@ -125,8 +172,11 @@ export default function useTodos() {
     addTodo,
     toggleTodo,
     toggleStep,
+    updateStep,
     deleteTodo,
     updateTodo,
+    addItemToTodo,
+    deleteStepFromTodo,
     refreshTodos: fetchTodos,
   };
 }

@@ -115,7 +115,7 @@ Accept: application/json
 
 
 ### TodoStep - DELETE step
-DELETE http://localhost:8080/api/v1/todos/items/1
+DELETE http://localhost:8080/api/v1/todos/items/99
 Accept: application/json
 
 
