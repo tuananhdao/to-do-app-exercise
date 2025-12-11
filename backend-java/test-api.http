@@ -134,12 +134,21 @@ DELETE http://localhost:8080/api/v1/todos/999
 Accept: application/json
 
 
+### AIController - POST voice-to-text (success)
+POST http://localhost:8080/api/v1/voice-to-text
 ### TodoStep - POST add new step to existing todo (success)
 POST http://localhost:8080/api/v1/todos/1/items
 Content-Type: application/json
 Accept: application/json
 
 {
+  "audioBase64": "UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=",
+  "audioFormat": "wav"
+}
+
+
+### AIController - POST voice-to-text (with mp3 format)
+POST http://localhost:8080/api/v1/voice-to-text
   "items": "Thêm step mới vào todo 1",
   "completed": false
 }
@@ -151,6 +160,13 @@ Content-Type: application/json
 Accept: application/json
 
 {
+  "audioBase64": "UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=",
+  "audioFormat": "mp3"
+}
+
+
+### AIController - POST voice-to-text (empty audioBase64 -> 400)
+POST http://localhost:8080/api/v1/voice-to-text
   "items": "",
   "completed": false
 }
@@ -162,6 +178,58 @@ Content-Type: application/json
 Accept: application/json
 
 {
+  "audioBase64": "",
+  "audioFormat": "mp3"
+}
+
+
+### AIController - POST voice-to-text (missing audioBase64 -> 400)
+POST http://localhost:8080/api/v1/voice-to-text
+Content-Type: application/json
+Accept: application/json
+
+{
+  "audioFormat": "mp3"
+}
+
+
+### AIController - POST generate-tasks (success - shopping list)
+POST http://localhost:8080/api/v1/generate-tasks
+Content-Type: application/json
+Accept: application/json
+
+{
+  "prompt": "Thêm danh sách đi chợ để nấu món bò sốt vang"
+}
+
+
+### AIController - POST generate-tasks (success - task with steps)
+POST http://localhost:8080/api/v1/generate-tasks
+Content-Type: application/json
+Accept: application/json
+
+{
+  "prompt": "Tạo kế hoạch học Spring Boot trong 1 tuần"
+}
+
+
+### AIController - POST generate-tasks (empty prompt -> 400)
+POST http://localhost:8080/api/v1/generate-tasks
+Content-Type: application/json
+Accept: application/json
+
+{
+  "prompt": ""
+}
+
+
+### AIController - POST generate-tasks (missing prompt -> 400)
+POST http://localhost:8080/api/v1/generate-tasks
+Content-Type: application/json
+Accept: application/json
+
+{
+}
   "items": "Step cho todo không tồn tại",
   "completed": false
 }
