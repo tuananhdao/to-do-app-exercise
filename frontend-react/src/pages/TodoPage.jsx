@@ -1,13 +1,30 @@
+import { useState } from 'react';
 import TodoList from '../components/todo/TodoList';
 import TodoForm from '../components/todo/TodoForm';
+import VoiceInputModal from '../components/todo/VoiceInputModal';
+import GenerateTasksModal from '../components/todo/GenerateTasksModal';
 import useTodos from '../hooks/useTodos';
 
 export default function TodoPage() {
-    const { todos, loading, error, addTodo, toggleTodo, toggleStep, updateStep, deleteTodo, updateTodo, addItemToTodo, deleteStepFromTodo } = useTodos();
+    const { todos, loading, error, addTodo, toggleTodo, toggleStep, updateStep, deleteTodo, updateTodo, addItemToTodo, deleteStepFromTodo, fetchTodos } = useTodos();
+    
+    const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
+    const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
+    const [voicePrompt, setVoicePrompt] = useState('');
 
     const handleVoiceInput = () => {
-        console.log('Voice input clicked');
-        alert('Tính năng nhập giọng nói - Sắp ra mắt!');
+        setIsVoiceModalOpen(true);
+    };
+
+    const handleVoiceTextGenerated = (text) => {
+        setVoicePrompt(text);
+        setIsGenerateModalOpen(true);
+    };
+
+    const handleTaskGenerated = async () => {
+        // Backend đã tự động lưu task vào DB rồi
+        // Chỉ cần refresh lại danh sách todos
+        await fetchTodos();
     };
 
     if (loading) {
@@ -20,6 +37,24 @@ export default function TodoPage() {
 
     return (
         <div className="h-full bg-gray-50">
+            {/* Voice Input Modal */}
+            <VoiceInputModal
+                isOpen={isVoiceModalOpen}
+                onClose={() => setIsVoiceModalOpen(false)}
+                onTextGenerated={handleVoiceTextGenerated}
+            />
+
+            {/* Generate Tasks Modal */}
+            <GenerateTasksModal
+                isOpen={isGenerateModalOpen}
+                onClose={() => {
+                    setIsGenerateModalOpen(false);
+                    setVoicePrompt('');
+                }}
+                onTaskGenerated={handleTaskGenerated}
+                initialPrompt={voicePrompt}
+            />
+
             <div className="h-full flex">
                 {/* Left side - Add Todo Form (30%) */}
                 <div className="w-[33%] bg-white border-r border-gray-200 p-6 overflow-y-auto flex items-start justify-center">

@@ -177,6 +177,7 @@ export default function useTodos() {
     updateTodo,
     addItemToTodo,
     deleteStepFromTodo,
+    fetchTodos,
     refreshTodos: fetchTodos,
   };
 }
