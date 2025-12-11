@@ -1,154 +1,278 @@
 .todo-item {
-    background: white;
+    background: transparent;
     border-radius: 0;
     padding: 0;
     margin-bottom: 0;
     box-shadow: none;
-    transition: all 0.2s ease;
-    border: 1px solid #e5e7eb;
+    border: none;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.todo-list .todo-item:last-child {
     border-bottom: none;
 }
 
-.todo-item:first-child {
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
-}
-
-.todo-item:last-child {
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
-    border-bottom: 1px solid #e5e7eb;
-}
-
 .todo-item:hover {
-    background: #fafafa;
+    box-shadow: 0 4px 8px var(--shadow-medium);
 }
 
 .todo-item.completed .todo-text {
-    color: #9ca3af;
+    color: var(--text-disabled);
+    text-decoration: line-through;
 }
 
 /* Todo Header */
 .todo-header {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 0.75rem;
-    padding: 1rem 1.25rem;
-    background: #f9fafb;
-    flex-wrap: wrap;
+    padding: 0.9rem 1.1rem 0.9rem 1.25rem;
 }
 
 .todo-checkbox {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     cursor: pointer;
-    accent-color: #000;
+    accent-color: var(--primary-blue);
     flex-shrink: 0;
+    border-radius: 4px;
+}
+
+.btn-expand {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+    border-radius: 4px;
+}
+
+.btn-expand:hover {
+    background: var(--hover-bg);
+    color: var(--text-primary);
+}
+
+.btn-expand svg {
+    width: 12px;
+    height: 12px;
 }
 
 .todo-text {
     flex: 1;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #000;
+    font-size: 16.5px;
+    font-weight: bold;
+    color: var(--text-primary);
     word-wrap: break-word;
     word-break: break-word;
     white-space: normal;
-    line-height: 1.5;
+    line-height: 1.4;
     text-align: left;
+    letter-spacing: -0.01em;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background 0.15s ease;
 }
 
-.todo-actions {
+.todo-text:hover:not([style*="cursor: default"]) {
+    background: var(--hover-bg);
+}
+
+.todo-text-placeholder {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.todo-text-input {
+    flex: 1;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text-primary);
+    border: none;
+    background: var(--background);
+    padding: 4px 8px;
+    border-radius: 4px;
+    outline: none;
+    border: 2px solid var(--primary-blue);
+}
+
+.todo-actions-right {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.35rem;
+    align-items: center;
 }
 
-.btn-edit,
 .btn-delete {
-    padding: 0.4rem 0.875rem;
-    border: 1px solid #e5e7eb;
+    padding: 6px;
+    border: none;
     border-radius: 6px;
-    font-size: 0.875rem;
-    font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s ease;
-    background: white;
-    color: #000;
-}
-
-.btn-edit:hover {
-    background: #f3f4f6;
-    border-color: #d1d5db;
+    transition: all 0.15s ease;
+    background: transparent;
+    color: var(--text-secondary);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-delete:hover {
-    background: #000;
-    color: white;
-    border-color: #000;
+    background: #FDE8E9;
+    color: #D13438;
+}
+
+.btn-delete svg {
+    width: 16px;
+    height: 16px;
 }
 
 /* Steps */
 .todo-steps {
-    padding: 0.5rem 1.25rem 1rem 3rem;
-    background: white;
+    padding: 0 1.1rem 0.95rem 3.5rem;
+    background: var(--surface);
 }
 
 .step-item {
     display: flex;
     align-items: center;
-    gap: 0.625rem;
-    padding: 0.5rem 0;
+    gap: 0.5rem;
+    padding: 0.45rem 0;
+    position: relative;
+}
+
+.step-item.add-step {
+    margin-top: 0.25rem;
+}
+
+.step-placeholder-icon {
+    color: var(--text-secondary);
+    font-size: 16px;
+    width: 18px;
+    text-align: center;
+    flex-shrink: 0;
 }
 
 .step-checkbox {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     cursor: pointer;
-    accent-color: #000;
+    accent-color: var(--primary-blue);
+    border-radius: 3px;
+    flex-shrink: 0;
 }
 
 .step-text {
-    color: #374151;
-    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    font-size: 15px;
+    font-weight: 800;
     word-wrap: break-word;
     word-break: break-word;
     white-space: normal;
-    line-height: 1.5;
+    line-height: 1.4;
     flex: 1;
     text-align: left;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: background 0.15s ease;
+}
+
+.step-text:hover:not([style*="cursor: default"]) {
+    background: var(--hover-bg);
 }
 
 .step-text.completed {
     text-decoration: line-through;
-    color: #9ca3af;
+    color: var(--text-disabled);
+}
+
+.step-text-input {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border: none;
+    background: var(--background);
+    padding: 2px 6px;
+    border-radius: 4px;
+    outline: none;
+    border: 2px solid var(--primary-blue);
+}
+
+.step-text-input.placeholder-input {
+    border: none;
+    background: transparent;
+}
+
+.step-text-input.placeholder-input:focus {
+    background: var(--background);
+    border: 2px solid var(--primary-blue);
+}
+
+.step-text-input::placeholder {
+    color: var(--text-disabled);
+}
+
+.btn-delete-step {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.btn-delete-step:hover {
+    background: #FDE8E9;
+    color: #D13438;
+}
+
+.btn-delete-step svg {
+    width: 14px;
+    height: 14px;
 }
 
 /* Separator */
 .todo-separator {
     height: 1px;
-    background: #e5e7eb;
+    background: var(--border-light);
     margin: 0;
 }
 
 /* Edit Mode */
 .edit-mode {
-    padding: 1.25rem;
+    padding: 1rem 1.25rem;
 }
 
 .edit-todo-input {
     width: 100%;
-    padding: 0.75rem;
-    font-size: 1rem;
-    font-weight: 600;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
+    padding: 0.625rem 0.75rem;
+    font-size: 16px;
+    font-weight: 400;
+    border: none;
+    border-bottom: 2px solid var(--primary-blue);
+    background: var(--background);
+    border-radius: 2px;
     margin-bottom: 1rem;
+    color: var(--text-primary);
 }
 
 .edit-todo-input:focus {
     outline: none;
-    border-color: #000;
-    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05);
+    background: var(--surface);
 }
 
 .edit-steps-section {
@@ -156,9 +280,9 @@
 }
 
 .steps-label {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #374151;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-secondary);
     margin-bottom: 0.5rem;
 }
 
@@ -170,88 +294,93 @@
 
 .edit-step-input {
     flex: 1;
-    padding: 0.625rem;
-    font-size: 0.9375rem;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    font-size: 14px;
+    font-weight: 400;
+    border: none;
+    border-bottom: 1px solid transparent;
+    background: var(--background);
+    border-radius: 2px;
 }
 
 .edit-step-input:focus {
     outline: none;
-    border-color: #000;
-    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05);
+    border-bottom: 2px solid var(--primary-blue);
+    background: var(--surface);
 }
 
 .btn-remove-step {
-    width: 36px;
-    height: 36px;
-    background: #000;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 1.25rem;
-    font-weight: bold;
+    width: 28px;
+    height: 28px;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid transparent;
+    border-radius: 2px;
+    font-size: 16px;
+    font-weight: 400;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
 }
 
 .btn-remove-step:hover {
-    background: #374151;
+    background: var(--hover-bg);
+    color: var(--text-primary);
 }
 
 .btn-add-step-inline {
-    padding: 0.625rem 1rem;
-    background: white;
-    color: #000;
-    border: 1px dashed #d1d5db;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    font-weight: 600;
+    padding: 0.5rem 0.875rem;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: 2px;
+    font-size: 14px;
+    font-weight: 400;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
     width: 100%;
 }
 
 .btn-add-step-inline:hover {
-    background: #f9fafb;
-    border-color: #6b7280;
+    background: var(--hover-bg);
+    color: var(--text-primary);
 }
 
 .edit-actions {
     display: flex;
-    gap: 0.75rem;
+    gap: 0.5rem;
     justify-content: flex-end;
-    padding-top: 1rem;
-    border-top: 1px solid #e5e7eb;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-light);
 }
 
 .btn-save,
 .btn-cancel {
-    padding: 0.625rem 1.5rem;
-    border: none;
-    border-radius: 6px;
-    font-weight: 600;
+    padding: 0.5rem 1.25rem;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    font-weight: 400;
+    font-size: 14px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
 }
 
 .btn-save {
-    background: #000;
+    background: var(--primary-blue);
     color: white;
 }
 
 .btn-save:hover {
-    background: #1f2937;
+    background: #1B4FB1;
 }
 
 .btn-cancel {
-    background: #f3f4f6;
-    color: #000;
-    border: 1px solid #e5e7eb;
+    background: transparent;
+    color: var(--text-secondary);
 }
 
 .btn-cancel:hover {
-    background: #e5e7eb;
+    background: var(--hover-bg);
+    color: var(--text-primary);
 }
 
 @media (max-width: 640px) {

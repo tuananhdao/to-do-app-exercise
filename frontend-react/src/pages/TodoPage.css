@@ -3,3 +3,8 @@
     margin: 0 auto;
     padding: 0;
 }
+
+.todo-container {
+    overflow-y: auto;
+    max-height: 450px;
+}

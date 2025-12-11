@@ -4,7 +4,6 @@ import './TodoForm.css';
 export default function TodoForm({ onAdd }) {
     const [text, setText] = useState('');
     const [stepInputs, setStepInputs] = useState([]);
-    const [showSteps, setShowSteps] = useState(false);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -13,7 +12,6 @@ export default function TodoForm({ onAdd }) {
             onAdd(text.trim(), validSteps);
             setText('');
             setStepInputs([]);
-            setShowSteps(false);
         }
     };
 
@@ -25,14 +23,17 @@ export default function TodoForm({ onAdd }) {
 
     const addStepInput = () => {
         setStepInputs([...stepInputs, '']);
-        setShowSteps(true);
     };
 
     const removeStepInput = (index) => {
         const newSteps = stepInputs.filter((_, i) => i !== index);
         setStepInputs(newSteps);
-        if (newSteps.length === 0) {
-            setShowSteps(false);
+    };
+
+    const handleStepKeyDown = (e, index) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addStepInput();
         }
     };
 
@@ -42,58 +43,41 @@ export default function TodoForm({ onAdd }) {
                 <input
                     type="text"
                     className="todo-input"
-                    placeholder="What needs to be done?"
+                    placeholder="+ Add a task"
                     value={text}
                     onChange={(e) => setText(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            handleSubmit(e);
+                        }
+                    }}aria-label="Add a task"
+                    
                 />
-                <button type="submit" className="todo-submit-btn">
-                    Add Todo
-                </button>
             </div>
 
-            {showSteps && (
-                <div className="steps-section">
-                    {stepInputs.map((step, index) => (
-                        <div key={index} className="step-input-row">
-                            <span className="step-number">{index + 1}.</span>
-                            <input
-                                type="text"
-                                className="step-input"
-                                placeholder={`Step ${index + 1}`}
-                                value={step}
-                                onChange={(e) => updateStepInput(index, e.target.value)}
-                            />
-                            <button
-                                type="button"
-                                className="btn-remove-step"
-                                onClick={() => removeStepInput(index)}
-                            >
-                                ×
-                            </button>
-                        </div>
-                    ))}
+            {stepInputs.map((step, index) => (
+                <div key={index} className="step-input-row">
+                    <span className="step-number">{index + 1}</span>
+                    <input
+                        type="text"
+                        className="step-input"
+                        placeholder="Next step"
+                        value={step}
+                        onChange={(e) => updateStepInput(index, e.target.value)}
+                        onKeyDown={(e) => handleStepKeyDown(e, index)}
+                    />
+                    <button
+                        type="button"
+                        className="btn-remove-step"
+                        onClick={() => removeStepInput(index)}
+                    >
+                    </button>
                 </div>
-            )}
-
-            {!showSteps && (
-                <button
-                    type="button"
-                    className="btn-add-step"
-                    onClick={addStepInput}
-                >
-                    Add Steps (optional)
-                </button>
-            )}
-
-            {showSteps && (
-                <button
-                    type="button"
-                    className="btn-add-more-step"
-                    onClick={addStepInput}
-                >
-                    Add Another Step
-                </button>
-            )}
+            ))}
+            
+            <div className="add-step-inline" onClick={addStepInput}>
+                + Add step
+            </div>
         </form>
     );
 }
