@@ -10,7 +10,16 @@ class TodoProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
-  List<Todo> get todos => _todos;
+  // Sort todos: incomplete first, completed last
+  List<Todo> get todos {
+    final sortedList = List<Todo>.from(_todos);
+    sortedList.sort((a, b) {
+      if (a.completed == b.completed) return 0;
+      return a.completed ? 1 : -1;
+    });
+    return sortedList;
+  }
+  
   bool get isLoading => _isLoading;
   String? get error => _error;
 
@@ -52,8 +61,9 @@ class TodoProvider with ChangeNotifier {
 
     final currentCompleted = _todos[todoIndex].completed;
     try {
+      // Toggle = gửi giá trị NGƯỢC LẠI với giá trị hiện tại
       final updatedTodo =
-          await _todoService.toggleTodo(todoId, currentCompleted);
+          await _todoService.toggleTodo(todoId, !currentCompleted);
       _todos = [
         for (final todo in _todos)
           if (todo.id == todoId) updatedTodo else todo,
@@ -103,50 +113,58 @@ class TodoProvider with ChangeNotifier {
   }
 
   Future<void> toggleStep(int stepId) async {
-    for (var i = 0; i < _todos.length; i++) {
-      final todo = _todos[i];
-      final stepIndex = todo.steps.indexWhere((s) => s.id == stepId);
-      if (stepIndex == -1) continue;
-
-      final currentStep = todo.steps[stepIndex];
-
-      try {
-        final updatedStep =
-            await _todoService.toggleStep(stepId, currentStep.completed);
-
-        final updatedSteps = [...todo.steps];
-        updatedSteps[stepIndex] = updatedStep;
-
-        final allStepsCompleted =
-            updatedSteps.isNotEmpty && updatedSteps.every((s) => s.completed);
-
-        final updatedTodo = Todo(
-          id: todo.id,
-          title: todo.title,
-          completed: allStepsCompleted,
-          createdAt: todo.createdAt,
-          steps: updatedSteps,
+    try {
+      // Tìm step trong danh sách todos
+      TodoStep? targetStep;
+      for (final todo in _todos) {
+        final step = todo.steps.firstWhere(
+          (s) => s.id == stepId,
+          orElse: () => TodoStep(title: ''),
         );
-
-        _todos = [
-          for (final t in _todos) if (t.id == todo.id) updatedTodo else t,
-        ];
-        _error = null;
-        notifyListeners();
-      } catch (e) {
-        _error = e.toString();
-        notifyListeners();
-        rethrow;
+        if (step.id == stepId) {
+          targetStep = step;
+          break;
+        }
       }
-      return;
+
+      if (targetStep == null || targetStep.id == null) return;
+
+      // Toggle step với giá trị NGƯỢC LẠI
+      await _todoService.toggleStep(stepId, !targetStep.completed);
+      
+      // Fetch lại todos để đồng bộ trạng thái todo cha
+      // Backend tự động cập nhật completed của todo cha khi toggle step
+      await fetchTodos(showLoading: false);
+      
+      _error = null;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      rethrow;
     }
   }
 
   Future<void> updateStepText(int stepId, String newText) async {
     try {
-      await _todoService.updateStepText(stepId, newText);
+      await _todoService.updateStepTitle(stepId, newText);
       await fetchTodos(showLoading: false);
       _error = null;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  Future<void> addStepToTodo(int todoId, String stepTitle) async {
+    try {
+      final updatedTodo = await _todoService.addStepToTodo(todoId, stepTitle);
+      _todos = [
+        for (final todo in _todos)
+          if (todo.id == todoId) updatedTodo else todo,
+      ];
+      _error = null;
+      notifyListeners();
     } catch (e) {
       _error = e.toString();
       notifyListeners();

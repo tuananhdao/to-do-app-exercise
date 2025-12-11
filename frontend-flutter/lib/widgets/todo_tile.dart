@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../models/todo.dart';
-import '../models/todo_step.dart';
 
 class TodoTile extends StatefulWidget {
   const TodoTile({
@@ -12,6 +11,8 @@ class TodoTile extends StatefulWidget {
     required this.onEditStep,
     required this.onConfirmDelete,
     required this.onEdit,
+    required this.onAddStep,
+    required this.onDeleteStep,
   });
 
   final Todo todo;
@@ -20,6 +21,8 @@ class TodoTile extends StatefulWidget {
   final void Function(TodoStep step) onEditStep;
   final Future<bool> Function() onConfirmDelete;
   final VoidCallback onEdit;
+  final VoidCallback onAddStep;
+  final void Function(TodoStep step) onDeleteStep;
 
   @override
   State<TodoTile> createState() => _TodoTileState();
@@ -30,8 +33,12 @@ class _TodoTileState extends State<TodoTile> {
 
   @override
   Widget build(BuildContext context) {
+    final isCompleted = widget.todo.completed;
+    
     return Dismissible(
       key: ValueKey(widget.todo.id),
+      // Disable swipe actions when completed
+      direction: isCompleted ? DismissDirection.none : DismissDirection.horizontal,
       background: _buildSwipeBackground(
         alignment: Alignment.centerLeft,
         color: Colors.blue.shade100,
@@ -43,6 +50,7 @@ class _TodoTileState extends State<TodoTile> {
         icon: Icons.delete,
       ),
       confirmDismiss: (direction) async {
+        if (isCompleted) return false; // Extra safety check
         if (direction == DismissDirection.startToEnd) {
           widget.onEdit();
           return false;
@@ -88,16 +96,12 @@ class _TodoTileState extends State<TodoTile> {
               ),
               IconButton(
                 visualDensity: VisualDensity.compact,
-                icon: const Icon(Icons.add),
-                tooltip: 'Thêm task con (coming soon)',
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Tính năng thêm task con sẽ sớm có.'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                },
+                icon: Icon(
+                  Icons.add,
+                  color: isCompleted ? Colors.grey.shade400 : null,
+                ),
+                tooltip: isCompleted ? 'Không thể thêm step (đã hoàn thành)' : 'Thêm task con',
+                onPressed: isCompleted ? null : widget.onAddStep,
               ),
             ],
           ),
@@ -136,10 +140,28 @@ class _TodoTileState extends State<TodoTile> {
                     ),
                   ),
                   onChanged: (_) => widget.onToggleStep(step),
-                  secondary: IconButton(
-                    icon: const Icon(Icons.edit, size: 18),
-                    tooltip: 'Sửa step',
-                    onPressed: () => widget.onEditStep(step),
+                  secondary: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          Icons.edit, 
+                          size: 18,
+                          color: isCompleted ? Colors.grey.shade400 : null,
+                        ),
+                        tooltip: isCompleted ? 'Không thể sửa (đã hoàn thành)' : 'Sửa step',
+                        onPressed: isCompleted ? null : () => widget.onEditStep(step),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          Icons.delete, 
+                          size: 18,
+                          color: isCompleted ? Colors.grey.shade400 : Colors.red.shade300,
+                        ),
+                        tooltip: isCompleted ? 'Không thể xóa (đã hoàn thành)' : 'Xóa step',
+                        onPressed: isCompleted ? null : () => widget.onDeleteStep(step),
+                      ),
+                    ],
                   ),
                 ),
               ),
