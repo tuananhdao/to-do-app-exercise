@@ -21,13 +21,28 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+/**
+ * Integration tests cho TodoController
+ * - Sử dụng H2 (profile "test")
+ * - Dùng MockMvc để gọi trực tiếp REST API
+ */
 
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
 @DisplayName("TodoController Integration Tests")
-public class TodoControllerIntegrationTest {
 
+public class TodoControllerIntegrationTest {
 
     private MockMvc mockMvc;
 
@@ -43,7 +58,7 @@ public class TodoControllerIntegrationTest {
     @BeforeEach
     void cleanDatabase() {
         todoStepRepository.deleteAll();
-        todoRepository.deleteAll();
+        todoRepository.deleteAll();  
         this.mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
     }
 
@@ -288,9 +303,8 @@ public class TodoControllerIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Todo not found with id: 999"));
     }
 
-    // =========================
     // PATCH /api/v1/todos/{id}
-    // =========================
+
 
     @Test
     @DisplayName("PATCH /todos/{id} - update title -> 200")
@@ -337,7 +351,10 @@ public class TodoControllerIntegrationTest {
 
         mockMvc.perform(delete("/api/v1/todos/{id}", todo.getId()))
                 .andExpect(status().isOk())
+
                 .andExpect(jsonPath("$.result").value("Deleted successfully"));
+
+            .andExpect(jsonPath("$.result").value("Deleted successfully"));
 
         assertThat(todoRepository.findById(todo.getId())).isEmpty();
     }
@@ -356,11 +373,19 @@ public class TodoControllerIntegrationTest {
     @Test
     @DisplayName("PATCH /items/{id} - update items -> 200")
     void test_updateStep_shouldReturn200_whenUpdateItems() throws Exception {
+
         TodoStep step = createTodoWithSingleStep("Old items", false);
 
         mockMvc.perform(patch("/api/v1/todos/items/{id}", step.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"text\":\"Updated items\"}"))
+
+        TodoStep step = createTodoWithSingleStep("Todo", "Old items", false);
+
+        mockMvc.perform(patch("/api/v1/todos/items/{id}", step.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"text\":\"Updated items\"}"))
+
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result.items").value("Updated items"));
     }
@@ -368,7 +393,11 @@ public class TodoControllerIntegrationTest {
     @Test
     @DisplayName("PATCH /items/{id} - update completed -> 200")
     void test_updateStep_shouldReturn200_whenUpdateCompleted() throws Exception {
+
         TodoStep step = createTodoWithSingleStep("Work", false);
+
+        TodoStep step = createTodoWithSingleStep("Todo", "Work", false);
+
 
         mockMvc.perform(patch("/api/v1/todos/items/{id}", step.getId())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -380,12 +409,21 @@ public class TodoControllerIntegrationTest {
     @Test
     @DisplayName("PATCH /items/{id} - blank items -> 400")
     void test_updateStep_shouldReturn400_whenItemsIsBlank() throws Exception {
+
         TodoStep step = createTodoWithSingleStep("Work", false);
 
         mockMvc.perform(patch("/api/v1/todos/items/{id}", step.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"text\":\" \"}"))
                 .andExpect(status().isBadRequest());
+
+        TodoStep step = createTodoWithSingleStep("Todo", "Work", false);
+
+        mockMvc.perform(patch("/api/v1/todos/items/{id}", step.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"text\":\" \"}"))
+            .andExpect(status().isBadRequest());
+
     }
 
     @Test
@@ -404,11 +442,19 @@ public class TodoControllerIntegrationTest {
     @Test
     @DisplayName("DELETE /items/{id} - exists -> 200")
     void test_deleteStep_shouldReturn200_whenStepExists() throws Exception {
+
         TodoStep step = createTodoWithSingleStep("Step", false);
 
         mockMvc.perform(delete("/api/v1/todos/items/{id}", step.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result").value("Step deleted successfully"));
+
+        TodoStep step = createTodoWithSingleStep("Todo", "Step", false);
+
+        mockMvc.perform(delete("/api/v1/todos/items/{id}", step.getId()))
+                .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("Step deleted successfully"));
+
 
         assertThat(todoStepRepository.findById(step.getId())).isEmpty();
     }
@@ -431,9 +477,15 @@ public class TodoControllerIntegrationTest {
         return todoRepository.save(todo);
     }
 
+
     private TodoStep createTodoWithSingleStep(String items, boolean completed) {
         Todo todo = new Todo();
         todo.setTitle("Todo");
+
+    private TodoStep createTodoWithSingleStep(String title, String items, boolean completed) {
+        Todo todo = new Todo();
+        todo.setTitle(title);
+
         todo.setCompleted(false);
 
         TodoStep step = new TodoStep();
