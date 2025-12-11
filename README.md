@@ -49,9 +49,44 @@ cd backend
 ```
 Runs on port `4000`.
 
-## Flutter
+## Flutter (mobile)
 
-Cross-platform mobile application for iOS and Android.
+Cross-platform mobile app for Android/iOS.
+
+### Prereqs (Android)
+1) Install Flutter (stable) and add to PATH.  
+2) Install Android Studio (SDK + Platform Tools).  
+3) JDK 17+ (Android Studio bundles one; otherwise set `JAVA_HOME`).  
+4) Keep `android/local.properties` untracked (machine-specific).
+
+### One-time setup
+```bash
+# Point Flutter to your SDK (adjust path)
+flutter config --android-sdk "E:\android\sdk"
+
+# Accept Android SDK licenses
+flutter doctor --android-licenses
+```
+
+Create an emulator (via Android Studio → Device Manager): Pixel 8 (or similar), API 34 Google Play (x86_64). Start it from Device Manager.
+
+### Backend URL
+- Default: `lib/config/constants.dart` → `BASE_URL = http://localhost:8080`
+- Override per run:  
+  `flutter run -d <device_id> --dart-define=BASE_URL=https://your-api`
+
+### Run on emulator/device
+```bash
+cd frontend-flutter
+flutter pub get
+flutter devices          # check your device/emulator id
+flutter run -d <device_id>
+```
+
+### Common fixes
+- Gradle/JDK mismatch: use JDK 17+, then `flutter clean`.
+- No devices: start an AVD in Android Studio or plug in a phone with USB debugging.
+- If builds stall, stop the emulator and retry `flutter run`.
 
 ## Docker
 

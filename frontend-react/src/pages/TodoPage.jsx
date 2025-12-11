@@ -8,15 +8,17 @@ export default function TodoPage() {
 
     return (
         <div className="todo-page">
-            <TodoList
-                todos={todos}
-                onToggle={toggleTodo}
-                onToggleStep={toggleStep}
-                onDelete={deleteTodo}
-                onUpdate={updateTodo}
-            />
+            <div className="todo-container">
+                <TodoList
+                    todos={todos}
+                    onToggle={toggleTodo}
+                    onToggleStep={toggleStep}
+                    onDelete={deleteTodo}
+                    onUpdate={updateTodo}
+                />
 
-            <TodoForm onAdd={addTodo} />
+                <TodoForm onAdd={addTodo} />
+            </div>
         </div>
     );
 }

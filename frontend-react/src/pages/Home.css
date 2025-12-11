@@ -1,11 +1,11 @@
 .home-page {
-    animation: fadeIn 0.5s ease-in;
+    animation: fadeIn 0.3s ease-in;
 }
 
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(10px);
     }
 
     to {
@@ -16,127 +16,134 @@
 
 .hero-section {
     text-align: center;
-    padding: 4rem 2rem;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    border-radius: 16px;
-    margin-bottom: 3rem;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    padding: 3rem 2rem;
+    background: var(--surface);
+    border-radius: 4px;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px var(--shadow-light);
 }
 
 .hero-title {
-    font-size: 3rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--text-primary);
     margin-bottom: 1rem;
+    letter-spacing: -0.02em;
 }
 
 .hero-description {
-    font-size: 1.2rem;
-    color: #4a5568;
+    font-size: 16px;
+    color: var(--text-secondary);
     max-width: 600px;
-    margin: 0 auto 2rem;
-    line-height: 1.6;
+    margin: 0 auto 1.5rem;
+    line-height: 1.5;
+    font-weight: 400;
 }
 
 .cta-buttons {
     display: flex;
-    gap: 1rem;
+    gap: 0.75rem;
     justify-content: center;
     flex-wrap: wrap;
 }
 
 .btn {
-    padding: 0.875rem 2rem;
-    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
     text-decoration: none;
-    font-weight: 600;
-    font-size: 1rem;
-    transition: all 0.3s ease;
+    font-weight: 400;
+    font-size: 14px;
+    transition: all 0.15s ease;
     display: inline-block;
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--primary-blue);
     color: white;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
 .btn-primary:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    background: #1B4FB1;
+    text-decoration: none;
 }
 
 .btn-secondary {
-    background: white;
-    color: #667eea;
-    border: 2px solid #667eea;
+    background: transparent;
+    color: var(--primary-blue);
+    border: 1px solid var(--primary-blue);
 }
 
 .btn-secondary:hover {
-    background: #667eea;
-    color: white;
-    transform: translateY(-3px);
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    background: var(--hover-bg);
+    text-decoration: none;
 }
 
 .features-section {
-    padding: 2rem 0;
+    padding: 1.5rem 0;
 }
 
 .features-title {
     text-align: center;
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #2d3748;
-    margin-bottom: 3rem;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2rem;
 }
 
 .features-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 2rem;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
 }
 
 .feature-card {
-    background: white;
-    padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-    transition: all 0.3s ease;
-    text-align: center;
+    background: var(--surface);
+    padding: 1.5rem;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px var(--shadow-light);
+    transition: all 0.15s ease;
 }
 
 .feature-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px var(--shadow-medium);
 }
 
 .feature-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
 }
 
-.feature-card h3 {
-    color: #2d3748;
-    font-size: 1.25rem;
+.feature-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text-primary);
     margin-bottom: 0.5rem;
 }
 
-.feature-card p {
-    color: #718096;
+.feature-description {
+    font-size: 14px;
+    color: var(--text-secondary);
     line-height: 1.5;
+    font-weight: 400;
 }
 
 @media (max-width: 768px) {
+    .hero-section {
+        padding: 2rem 1.5rem;
+    }
+
     .hero-title {
-        font-size: 2rem;
+        font-size: 28px;
     }
 
     .hero-description {
-        font-size: 1rem;
+        font-size: 15px;
+    }
+
+    .features-title {
+        font-size: 22px;
     }
 
     .features-grid {
