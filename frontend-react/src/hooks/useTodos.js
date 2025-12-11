@@ -1,111 +1,132 @@
 import { useState, useEffect } from 'react';
-import useLocalStorage from './useLocalStorage';
+import todoService from '../services/todoService';
 
 export default function useTodos() {
-  const [todos, setTodos] = useLocalStorage('todos', []);
+  const [todos, setTodos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch todos on mount
+  useEffect(() => {
+    fetchTodos();
+  }, []);
+
+  const fetchTodos = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await todoService.getAll();
+      setTodos(data);
+    } catch (err) {
+      setError(err.message);
+      console.error('Failed to fetch todos:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Add todo with optional steps
-  const addTodo = (text, steps = []) => {
-    const newTodo = {
-      id: Date.now(),
-      text,
-      completed: false,
-      steps: steps.map((stepText, index) => ({
-        id: Date.now() + index + 1,
-        text: stepText,
+  const addTodo = async (title, stepItems = []) => {
+    try {
+      setError(null);
+      const todoData = {
+        title,
         completed: false,
-      })),
-      createdAt: new Date().toISOString(),
-    };
-    setTodos([...todos, newTodo]);
+        steps: stepItems.map(items => ({
+          items,
+          completed: false,
+        })),
+      };
+      const newTodo = await todoService.create(todoData);
+      setTodos([...todos, newTodo]);
+    } catch (err) {
+      setError(err.message);
+      console.error('Failed to add todo:', err);
+      throw err;
+    }
   };
 
   // Toggle todo - updates all steps if exists
-  const toggleTodo = (id) => {
-    setTodos(
-      todos.map(todo => {
-        if (todo.id === id) {
-          const newCompleted = !todo.completed;
-          // If todo has steps, update all of them
-          if (todo.steps && todo.steps.length > 0) {
-            return {
-              ...todo,
-              completed: newCompleted,
-              steps: todo.steps.map(step => ({ ...step, completed: newCompleted })),
-            };
-          }
-          // If no steps, just toggle todo
-          return { ...todo, completed: newCompleted };
-        }
-        return todo;
-      })
-    );
+  const toggleTodo = async (id) => {
+    try {
+      setError(null);
+      const todo = todos.find(t => t.id === id);
+      if (!todo) return;
+
+      const newCompleted = !todo.completed;
+      const updatedTodo = await todoService.update(id, { completed: newCompleted });
+      
+      setTodos(todos.map(t => t.id === id ? updatedTodo : t));
+    } catch (err) {
+      setError(err.message);
+      console.error('Failed to toggle todo:', err);
+      throw err;
+    }
   };
 
   // Toggle individual step - auto-updates parent
-  const toggleStep = (todoId, stepId) => {
-    setTodos(
-      todos.map(todo => {
-        if (todo.id === todoId) {
-          const updatedSteps = todo.steps.map(step =>
-            step.id === stepId ? { ...step, completed: !step.completed } : step
-          );
-          // Auto-complete parent if all steps done
-          const allStepsCompleted = updatedSteps.every(step => step.completed);
-          return {
-            ...todo,
-            steps: updatedSteps,
-            completed: allStepsCompleted,
-          };
-        }
-        return todo;
-      })
-    );
+  const toggleStep = async (todoId, stepId) => {
+    try {
+      setError(null);
+      const todo = todos.find(t => t.id === todoId);
+      if (!todo) return;
+
+      const step = todo.steps.find(s => s.id === stepId);
+      if (!step) return;
+
+      const newCompleted = !step.completed;
+      // API expects 'text' in request, but returns 'items' in response
+      await todoService.updateStep(stepId, {
+        text: step.items,
+        completed: newCompleted,
+      });
+
+      // Refresh todo list to get updated state from backend
+      await fetchTodos();
+    } catch (err) {
+      setError(err.message);
+      console.error('Failed to toggle step:', err);
+      throw err;
+    }
   };
 
-  const deleteTodo = (id) => {
-    setTodos(todos.filter(todo => todo.id !== id));
+  const deleteTodo = async (id) => {
+    try {
+      setError(null);
+      await todoService.delete(id);
+      setTodos(todos.filter(todo => todo.id !== id));
+    } catch (err) {
+      setError(err.message);
+      console.error('Failed to delete todo:', err);
+      throw err;
+    }
   };
 
-  // Update todo text and steps
-  const updateTodo = (id, newText, newSteps = []) => {
-    setTodos(
-      todos.map(todo => {
-        if (todo.id === id) {
-          const updatedSteps = newSteps.map((stepText, index) => {
-            const existingStep = todo.steps && todo.steps[index];
-            return existingStep
-              ? { ...existingStep, text: stepText }
-              : {
-                  id: Date.now() + index,
-                  text: stepText,
-                  completed: false,
-                };
-          });
-          
-          // Recalculate completion if has steps
-          const allStepsCompleted = updatedSteps.length > 0 
-            ? updatedSteps.every(step => step.completed)
-            : todo.completed;
-          
-          return {
-            ...todo,
-            text: newText,
-            steps: updatedSteps,
-            completed: allStepsCompleted,
-          };
-        }
-        return todo;
-      })
-    );
+  // Update todo title and steps
+  const updateTodo = async (id, newTitle, newStepItems = []) => {
+    try {
+      setError(null);
+      const updatedTodo = await todoService.update(id, {
+        title: newTitle,
+      });
+      
+      setTodos(todos.map(t => t.id === id ? updatedTodo : t));
+    } catch (err) {
+      setError(err.message);
+      console.error('Failed to update todo:', err);
+      throw err;
+    }
   };
 
   return {
     todos,
+    loading,
+    error,
     addTodo,
     toggleTodo,
     toggleStep,
     deleteTodo,
     updateTodo,
+    refreshTodos: fetchTodos,
   };
 }

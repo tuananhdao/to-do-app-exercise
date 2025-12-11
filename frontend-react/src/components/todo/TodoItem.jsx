@@ -3,11 +3,11 @@ import './TodoItem.css';
 
 export default function TodoItem({ todo, onToggle, onToggleStep, onDelete, onUpdate }) {
     const [isStepsExpanded, setIsStepsExpanded] = useState(true);
-    const [editingTitle, setEditingTitle] = useState(!todo.text?.trim());
+    const [editingTitle, setEditingTitle] = useState(!todo.title?.trim());
     const [editingStepId, setEditingStepId] = useState(null);
-    const [titleValue, setTitleValue] = useState(todo.text || '');
+    const [titleValue, setTitleValue] = useState(todo.title || '');
     const [stepValues, setStepValues] = useState(
-        todo.steps ? Object.fromEntries(todo.steps.map(s => [s.id, s.text])) : {}
+        todo.steps ? Object.fromEntries(todo.steps.map(s => [s.id, s.items])) : {}
     );
     const [newStepValue, setNewStepValue] = useState('');
     const titleInputRef = useRef(null);
@@ -15,9 +15,9 @@ export default function TodoItem({ todo, onToggle, onToggleStep, onDelete, onUpd
     const newStepInputRef = useRef(null);
 
     useEffect(() => {
-        setTitleValue(todo.text || '');
-        setStepValues(todo.steps ? Object.fromEntries(todo.steps.map(s => [s.id, s.text])) : {});
-        setEditingTitle(!todo.text?.trim());
+        setTitleValue(todo.title || '');
+        setStepValues(todo.steps ? Object.fromEntries(todo.steps.map(s => [s.id, s.items])) : {});
+        setEditingTitle(!todo.title?.trim());
     }, [todo]);
 
     useEffect(() => {
@@ -35,8 +35,8 @@ export default function TodoItem({ todo, onToggle, onToggleStep, onDelete, onUpd
     }, [editingStepId]);
 
     const handleTitleBlur = () => {
-        if (titleValue.trim() && titleValue !== todo.text) {
-            const steps = todo.steps ? todo.steps.map(s => s.text) : [];
+        if (titleValue.trim() && titleValue !== todo.title) {
+            const steps = todo.steps ? todo.steps.map(s => s.items) : [];
             onUpdate(todo.id, titleValue.trim(), steps);
             setEditingTitle(false);
         } else if (titleValue.trim()) {
@@ -54,22 +54,22 @@ export default function TodoItem({ todo, onToggle, onToggleStep, onDelete, onUpd
             e.preventDefault();
             handleTitleBlur();
         } else if (e.key === 'Escape') {
-            setTitleValue(todo.text);
+            setTitleValue(todo.title);
             setEditingTitle(false);
         }
     };
 
     const handleStepBlur = (stepId) => {
         const newValue = stepValues[stepId]?.trim();
-        if (newValue && newValue !== todo.steps.find(s => s.id === stepId)?.text) {
-            const updatedSteps = todo.steps.map(s => 
-                s.id === stepId ? newValue : s.text
+        if (newValue && newValue !== todo.steps.find(s => s.id === stepId)?.items) {
+            const updatedSteps = todo.steps.map(s =>
+                s.id === stepId ? newValue : s.items
             );
-            onUpdate(todo.id, todo.text, updatedSteps);
+            onUpdate(todo.id, todo.title, updatedSteps);
         } else {
             setStepValues(prev => ({
                 ...prev,
-                [stepId]: todo.steps.find(s => s.id === stepId)?.text || ''
+                [stepId]: todo.steps.find(s => s.id === stepId)?.items || ''
             }));
         }
         setEditingStepId(null);
@@ -82,7 +82,7 @@ export default function TodoItem({ todo, onToggle, onToggleStep, onDelete, onUpd
         } else if (e.key === 'Escape') {
             setStepValues(prev => ({
                 ...prev,
-                [stepId]: todo.steps.find(s => s.id === stepId)?.text || ''
+                [stepId]: todo.steps.find(s => s.id === stepId)?.items || ''
             }));
             setEditingStepId(null);
         }
@@ -92,8 +92,8 @@ export default function TodoItem({ todo, onToggle, onToggleStep, onDelete, onUpd
         if (e.key === 'Enter') {
             e.preventDefault();
             if (newStepValue.trim()) {
-                const currentSteps = todo.steps ? todo.steps.map(s => s.text) : [];
-                onUpdate(todo.id, todo.text, [...currentSteps, newStepValue.trim()]);
+                const currentSteps = todo.steps ? todo.steps.map(s => s.items) : [];
+                onUpdate(todo.id, todo.title, [...currentSteps, newStepValue.trim()]);
                 setNewStepValue('');
             }
         } else if (e.key === 'Escape') {
@@ -106,8 +106,8 @@ export default function TodoItem({ todo, onToggle, onToggleStep, onDelete, onUpd
 
     const handleNewStepBlur = () => {
         if (newStepValue.trim()) {
-            const currentSteps = todo.steps ? todo.steps.map(s => s.text) : [];
-            onUpdate(todo.id, todo.text, [...currentSteps, newStepValue.trim()]);
+            const currentSteps = todo.steps ? todo.steps.map(s => s.items) : [];
+            onUpdate(todo.id, todo.title, [...currentSteps, newStepValue.trim()]);
             setNewStepValue('');
         } else {
             setNewStepValue('');
@@ -115,8 +115,8 @@ export default function TodoItem({ todo, onToggle, onToggleStep, onDelete, onUpd
     };
 
     const handleDeleteStep = (stepId) => {
-        const updatedSteps = todo.steps.filter(s => s.id !== stepId).map(s => s.text);
-        onUpdate(todo.id, todo.text, updatedSteps);
+        const updatedSteps = todo.steps.filter(s => s.id !== stepId).map(s => s.items);
+        onUpdate(todo.id, todo.title, updatedSteps);
     };
 
     const hasSteps = todo.steps && todo.steps.length > 0;
@@ -142,12 +142,12 @@ export default function TodoItem({ todo, onToggle, onToggleStep, onDelete, onUpd
                         placeholder="+ Add a task"
                     />
                 ) : (
-                    <span 
-                        className={`todo-text ${!todo.text?.trim() ? 'todo-text-placeholder' : ''}`} 
+                    <span
+                        className={`todo-text ${!todo.title?.trim() ? 'todo-text-placeholder' : ''}`}
                         onClick={() => !todo.completed && setEditingTitle(true)}
                         style={{ cursor: todo.completed ? 'default' : 'text' }}
                     >
-                        {todo.text || '+ Add a task'}
+                        {todo.title || '+ Add a task'}
                     </span>
                 )}
 
@@ -158,7 +158,7 @@ export default function TodoItem({ todo, onToggle, onToggleStep, onDelete, onUpd
                         title="Delete"
                     >
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <path d="M3 4h10M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1m1 0v9a1 1 0 01-1 1H5a1 1 0 01-1-1V4h8z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M3 4h10M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1m1 0v9a1 1 0 01-1 1H5a1 1 0 01-1-1V4h8z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                     </button>
 
@@ -169,7 +169,7 @@ export default function TodoItem({ todo, onToggle, onToggleStep, onDelete, onUpd
                             title={isStepsExpanded ? "Collapse steps" : "Expand steps"}
                         >
                             <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
-                                <path d={isStepsExpanded ? "M2 4l4 4 4-4" : "M4 2l4 4-4 4"} stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d={isStepsExpanded ? "M2 4l4 4 4-4" : "M4 2l4 4-4 4"} stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                         </button>
                     )}
@@ -197,12 +197,12 @@ export default function TodoItem({ todo, onToggle, onToggleStep, onDelete, onUpd
                                     onKeyDown={(e) => handleStepKeyDown(e, step.id)}
                                 />
                             ) : (
-                                <span 
+                                <span
                                     className={`step-text ${step.completed ? 'completed' : ''}`}
                                     onClick={() => !step.completed && setEditingStepId(step.id)}
                                     style={{ cursor: step.completed ? 'default' : 'text' }}
                                 >
-                                    {step.text}
+                                    {step.items}
                                 </span>
                             )}
                             <button
@@ -211,12 +211,12 @@ export default function TodoItem({ todo, onToggle, onToggleStep, onDelete, onUpd
                                 title="Delete step"
                             >
                                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                                    <path d="M3.5 3.5l7 7m0-7l-7 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                                    <path d="M3.5 3.5l7 7m0-7l-7 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                                 </svg>
                             </button>
                         </div>
                     ))}
-                    
+
                     <div className="step-item add-step">
                         <span className="step-placeholder-icon">+</span>
                         <input
