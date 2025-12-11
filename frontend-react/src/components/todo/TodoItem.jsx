@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import './TodoItem.css';
 
-export default function TodoItem({ todo, onToggle, onToggleStep, onDelete, onUpdate }) {
+export default function TodoItem({ todo, onToggle, onToggleStep, onDelete, onUpdate, deleteStep }) {
     const [isStepsExpanded, setIsStepsExpanded] = useState(true);
     const [editingTitle, setEditingTitle] = useState(!todo.title?.trim());
     const [editingStepId, setEditingStepId] = useState(null);
@@ -115,8 +115,7 @@ export default function TodoItem({ todo, onToggle, onToggleStep, onDelete, onUpd
     };
 
     const handleDeleteStep = (stepId) => {
-        const updatedSteps = todo.steps.filter(s => s.id !== stepId).map(s => s.items);
-        onUpdate(todo.id, todo.title, updatedSteps);
+        deleteStep(stepId);
     };
 
     const hasSteps = todo.steps && todo.steps.length > 0;

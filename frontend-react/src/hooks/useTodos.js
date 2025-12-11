@@ -5,11 +5,31 @@ export default function useTodos() {
   const [todos, setTodos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [toastMessage, setToastMessage] = useState(null);
+  const [toastType, setToastType] = useState('error');
 
   // Fetch todos on mount
   useEffect(() => {
     fetchTodos();
   }, []);
+
+  const showToast = (message, type = 'error') => {
+    setToastMessage(message);
+    setToastType(type);
+  };
+
+  const clearToast = () => {
+    setToastMessage(null);
+  };
+
+  const parseError = (err) => {
+    // Network error
+    if (!err.message || err.message === 'Failed to fetch') {
+      return 'Network error. Please check your connection.';
+    }
+    // Backend error message (already parsed in api.js)
+    return err.message;
+  };
 
   const fetchTodos = async () => {
     try {
@@ -18,7 +38,9 @@ export default function useTodos() {
       const data = await todoService.getAll();
       setTodos(data);
     } catch (err) {
-      setError(err.message);
+      const errorMessage = parseError(err);
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
       console.error('Failed to fetch todos:', err);
     } finally {
       setLoading(false);
@@ -39,8 +61,11 @@ export default function useTodos() {
       };
       const newTodo = await todoService.create(todoData);
       setTodos([...todos, newTodo]);
+      showToast('Todo created successfully', 'success');
     } catch (err) {
-      setError(err.message);
+      const errorMessage = parseError(err);
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
       console.error('Failed to add todo:', err);
       throw err;
     }
@@ -52,13 +77,14 @@ export default function useTodos() {
       setError(null);
       const todo = todos.find(t => t.id === id);
       if (!todo) return;
-
       const newCompleted = !todo.completed;
       const updatedTodo = await todoService.update(id, { completed: newCompleted });
       
       setTodos(todos.map(t => t.id === id ? updatedTodo : t));
     } catch (err) {
-      setError(err.message);
+      const errorMessage = parseError(err);
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
       console.error('Failed to toggle todo:', err);
       throw err;
     }
@@ -84,7 +110,9 @@ export default function useTodos() {
       // Refresh todo list to get updated state from backend
       await fetchTodos();
     } catch (err) {
-      setError(err.message);
+      const errorMessage = parseError(err);
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
       console.error('Failed to toggle step:', err);
       throw err;
     }
@@ -95,8 +123,11 @@ export default function useTodos() {
       setError(null);
       await todoService.delete(id);
       setTodos(todos.filter(todo => todo.id !== id));
+      showToast('Todo deleted successfully', 'success');
     } catch (err) {
-      setError(err.message);
+      const errorMessage = parseError(err);
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
       console.error('Failed to delete todo:', err);
       throw err;
     }
@@ -111,9 +142,28 @@ export default function useTodos() {
       });
       
       setTodos(todos.map(t => t.id === id ? updatedTodo : t));
+      showToast('Todo updated successfully', 'success');
     } catch (err) {
-      setError(err.message);
+      const errorMessage = parseError(err);
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
       console.error('Failed to update todo:', err);
+      throw err;
+    }
+  };
+
+  const deleteStep = async (id) => {
+    try {
+      setError(null);
+      await todoService.deleteStep(id);
+      const data = await todoService.getAll();
+      setTodos(data);
+      showToast('Step deleted successfully', 'success');
+    } catch (err) {
+      const errorMessage = parseError(err);
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+      console.error('Failed to delete step:', err);
       throw err;
     }
   };
@@ -122,11 +172,15 @@ export default function useTodos() {
     todos,
     loading,
     error,
+    toastMessage,
+    toastType,
     addTodo,
     toggleTodo,
     toggleStep,
     deleteTodo,
     updateTodo,
     refreshTodos: fetchTodos,
+    clearToast,
+    deleteStep,
   };
 }

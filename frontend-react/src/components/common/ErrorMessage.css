@@ -1,0 +1,24 @@
+.error-message-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #e53e3e;
+  font-size: 13px;
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+.error-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.input-error {
+  border-color: #e53e3e !important;
+  box-shadow: 0 0 0 1px rgba(229, 62, 62, 0.2) !important;
+}
+
+.input-error:focus {
+  border-color: #c53030 !important;
+  box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1) !important;
+}
