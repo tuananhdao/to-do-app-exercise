@@ -52,6 +52,16 @@ const todoService = {
     }
   },
 
+  // Add a new item/step to an existing todo
+  addItemToTodo: async (todoId, itemData) => {
+    try {
+      return await api.post(`/todos/${todoId}/items`, itemData);
+    } catch (error) {
+      console.error('Error adding item to todo:', error);
+      throw error;
+    }
+  },
+
   // Update a step (use PATCH as per backend)
   updateStep: async (stepId, stepData) => {
     try {
