@@ -50,4 +50,3 @@ public class OpenAIConfig {
         return dotenv.get("OPENAI_API_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai");
     }
 }
-

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'config/app_theme.dart';
 import 'models/todo.dart';
 import 'providers/todo_provider.dart';
 import 'widgets/todo_tile.dart';
@@ -20,10 +21,7 @@ class TodoApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Todo List',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
-          useMaterial3: true,
-        ),
+        theme: AppTheme.lightTheme,
         home: const TodoHomePage(),
       ),
     );
@@ -50,45 +48,108 @@ class _TodoHomePageState extends State<TodoHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.background,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Colors.grey.shade200,
-        elevation: 0,
-        title: const Text(
-          'AppBar: Todo List',
-          style: TextStyle(color: Colors.black87, fontSize: 16),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                gradient: AppTheme.primaryGradient,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.check_circle_outline,
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text('My Tasks'),
+          ],
         ),
-        centerTitle: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh_rounded),
             onPressed: () => context.read<TodoProvider>().fetchTodos(),
+            tooltip: 'Refresh',
           ),
         ],
       ),
       body: Consumer<TodoProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (provider.error != null) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, size: 48, color: Colors.red.shade300),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Error: ${provider.error}',
-                    style: const TextStyle(color: Colors.red),
-                    textAlign: TextAlign.center,
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: AppTheme.primaryGradient,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      strokeWidth: 3,
+                    ),
                   ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => provider.fetchTodos(),
-                    child: const Text('Retry'),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Loading tasks...',
+                    style: AppTheme.bodyMedium,
                   ),
                 ],
+              ),
+            );
+          }
+
+          if (provider.error != null) {
+            return Center(
+              child: Container(
+                margin: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: AppTheme.error.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppTheme.error.withOpacity(0.3)),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: const BoxDecoration(
+                        color: AppTheme.error,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.error_outline_rounded,
+                        size: 48,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Oops! Something went wrong',
+                      style: AppTheme.h3,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      provider.error!,
+                      style: AppTheme.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () => provider.fetchTodos(),
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: const Text('Try Again'),
+                    ),
+                  ],
+                ),
               ),
             );
           }
@@ -96,55 +157,88 @@ class _TodoHomePageState extends State<TodoHomePage> {
           final todos = provider.todos;
 
           if (todos.isEmpty) {
-            return const Center(
-              child: Text('No todos yet. Add one!'),
+            return Center(
+              child: Container(
+                margin: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(32),
+                      decoration: BoxDecoration(
+                        gradient: AppTheme.primaryGradient.scale(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.task_alt_rounded,
+                        size: 80,
+                        color: AppTheme.primary.withOpacity(0.6),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'No tasks yet!',
+                      style: AppTheme.h2,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Tap the + button below to create your first task\nor use AI to generate tasks from your voice',
+                      style: AppTheme.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
             );
           }
 
           return Column(
             children: [
               Expanded(
-                child: ListView.separated(
-                  itemBuilder: (context, index) {
-                    final todo = todos[index];
-                    return TodoTile(
-                      todo: todo,
-                      onToggleTodo: () => _toggleTodo(context, todo),
-                      onToggleStep: (step) => _toggleStep(context, step),
-                      onEditStep: (step) => _editStep(context, step),
-                      onConfirmDelete: () => _confirmDelete(context, todo),
-                      onEdit: () => _showEditDialog(context, todo),
-                      onAddStep: () => _addStep(context, todo),
-                      onDeleteStep: (step) => _deleteStep(context, step),
-                    );
-                  },
-                  separatorBuilder: (_, __) => Divider(
-                    height: 1,
-                    color: Colors.grey.shade300,
+                child: RefreshIndicator(
+                  color: AppTheme.primary,
+                  onRefresh: provider.fetchTodos,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.only(top: 100, bottom: 100),
+                    itemCount: todos.length,
+                    itemBuilder: (context, index) {
+                      final todo = todos[index];
+                      return TodoTile(
+                        todo: todo,
+                        onToggleTodo: () => _toggleTodo(context, todo),
+                        onToggleStep: (step) => _toggleStep(context, step),
+                        onEditStep: (step) => _editStep(context, step),
+                        onConfirmDelete: () => _confirmDelete(context, todo),
+                        onEdit: () => _showEditDialog(context, todo),
+                        onAddStep: () => _addStep(context, todo),
+                        onDeleteStep: (step) => _deleteStep(context, step),
+                      );
+                    },
                   ),
-                  itemCount: todos.length,
                 ),
               ),
             ],
           );
         },
       ),
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          FloatingActionButton(
-            heroTag: 'ai_button',
-            onPressed: () => _showAIDialog(context),
-            backgroundColor: const Color(0xFF3E5F8A),
-            child: const Icon(Icons.smart_toy),
-          ),
-          const SizedBox(height: 16),
-          FloatingActionButton(
-            heroTag: 'add_button',
-            onPressed: () => _showAddDialog(context),
-            child: const Icon(Icons.add),
-          ),
-        ],
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            FloatingActionButton(
+              heroTag: 'ai_button',
+              onPressed: () => _showAIDialog(context),
+              child: const Icon(Icons.auto_awesome_rounded, size: 22),
+            ),
+            const SizedBox(height: 12),
+            FloatingActionButton(
+              heroTag: 'add_button',
+              onPressed: () => _showAddDialog(context),
+              child: const Icon(Icons.add_rounded, size: 24),
+            ),
+          ],
+        ),
       ),
     );
   }

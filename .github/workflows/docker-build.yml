@@ -38,7 +38,7 @@ jobs:
         reporter: java-junit
         fail-on-error: true
 
-  test-frontend:
+  test-frontend-react:
     runs-on: ubuntu-latest
     
     steps:
@@ -77,6 +77,44 @@ jobs:
       run: |
         echo "⚠️  Vitest not installed yet. Skipping frontend tests."
         echo "📝 To enable tests, install dependencies: npm install --save-dev vitest jsdom @testing-library/react @testing-library/jest-dom @testing-library/user-event"
+
+  test-frontend-flutter:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.5'
+        channel: 'stable'
+        cache: true
+
+    - name: Get Flutter Dependencies
+      working-directory: ./frontend-flutter
+      run: flutter pub get
+
+    - name: Analyze Flutter Code
+      working-directory: ./frontend-flutter
+      run: flutter analyze
+
+    - name: Run Flutter Tests
+      working-directory: ./frontend-flutter
+      run: flutter test
+
+    - name: Generate Test Coverage
+      working-directory: ./frontend-flutter
+      run: flutter test --coverage
+
+    - name: Upload Coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./frontend-flutter/coverage/lcov.info
+        flags: flutter
+        name: flutter-coverage
+      continue-on-error: true
 
   build-backend:
     needs: [test-backend]
@@ -121,8 +159,8 @@ jobs:
         cache-to: type=gha,mode=max
         platforms: linux/amd64,linux/arm64
 
-  build-frontend:
-    needs: [test-frontend]
+  build-frontend-react:
+    needs: [test-frontend-react]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -147,13 +185,13 @@ jobs:
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/todo-app-frontend
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/todo-app-frontend-react
         tags: |
           type=ref,event=branch
           type=sha
           type=raw,value=latest,enable={{is_default_branch}}
 
-    - name: Build and Push Frontend Docker Image
+    - name: Build and Push React Frontend Docker Image
       uses: docker/build-push-action@v5
       with:
         context: ./frontend-react
@@ -163,3 +201,47 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
         platforms: linux/amd64,linux/arm64
+
+  build-frontend-flutter:
+    needs: [test-frontend-flutter]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to GitHub Container Registry
+      if: github.ref == 'refs/heads/main'
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/todo-app-frontend-flutter
+        tags: |
+          type=ref,event=branch
+          type=sha
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and Push Flutter Frontend Docker Image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./frontend-flutter
+        push: ${{ github.ref == 'refs/heads/main' }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          FLUTTER_VERSION=3.24.5

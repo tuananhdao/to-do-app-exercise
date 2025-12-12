@@ -3,8 +3,11 @@ class ApiConfig {
   // For Android emulator use: http://10.0.2.2:8080
   // For iOS simulator use: http://localhost:8080
   // For physical device use your computer's IP: http://192.168.x.x:8080
-  static const String baseUrl = 'http://localhost:8080';
+  static const String baseUrl = 'http://10.0.2.2:8080';
   static const String apiVersion = '/api/v1';
+  
+  // Feature flags
+  static const bool useMockVoiceToText = false;  // Using native speech_to_text package
   
   // Endpoints
   static const String todosEndpoint = '$apiVersion/todos';
