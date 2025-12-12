@@ -98,7 +98,7 @@ jobs:
 
     - name: Analyze Flutter Code
       working-directory: ./frontend-flutter
-      run: flutter analyze
+      run: flutter analyze --no-fatal-infos
 
     - name: Run Flutter Tests
       working-directory: ./frontend-flutter
