@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 // ignore_for_file: use_build_context_synchronously
 
 import '../models/todo.dart';
-import '../models/todo_step.dart';
 import '../providers/todo_provider.dart';
+import '../widgets/todo_tile.dart';
 import '../widgets/voice_input_dialog.dart';
 
 class TodoListPage extends StatefulWidget {
@@ -109,9 +109,12 @@ class _TodoListPageState extends State<TodoListPage> {
                       todoProvider.toggleStep(step.id!),
                   onEditStep: (TodoStep step) =>
                       _showEditStepDialog(step, todoProvider),
+                  onConfirmDelete: () => _confirmDeleteTodo(todo),
+                  onEdit: () => _showEditTitleDialog(todo),
                   onAddStep: () => _showAddStepDialog(todo, todoProvider),
                   onDeleteStep: (TodoStep step) =>
                       todoProvider.deleteStep(step.id!),
+                );
               },
             ),
           );
@@ -124,11 +127,8 @@ class _TodoListPageState extends State<TodoListPage> {
           FloatingActionButton(
             heroTag: 'mic-fab',
             mini: true,
-            tooltip: 'Voice input (coming soon)',
-            onPressed: () {
-              // Placeholder for future voice input.
             tooltip: 'Voice input / AI Task Generator',
-            onPressed: () => _showVoiceInputDialog(),
+            onPressed: _showVoiceInputDialog,
             foregroundColor: const Color(0xFF3E5F8A),
             child: const Icon(Icons.mic_none),
           ),
@@ -196,6 +196,36 @@ class _TodoListPageState extends State<TodoListPage> {
   }
 
   Future<void> _showEditTitleDialog(Todo todo) async {
+    final titleController = TextEditingController(text: todo.title);
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Title'),
+        content: TextField(
+          controller: titleController,
+          decoration: const InputDecoration(labelText: 'Title'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true && titleController.text.trim().isNotEmpty) {
+      await context
+          .read<TodoProvider>()
+          .updateTodoTitle(todo.id!, titleController.text.trim());
+    }
+  }
+
   /// Show voice input dialog for AI-powered task generation
   Future<void> _showVoiceInputDialog() async {
     final result = await showDialog<Todo>(
@@ -221,11 +251,6 @@ class _TodoListPageState extends State<TodoListPage> {
     }
   }
 
-          .read<TodoProvider>()
-          .updateTodoTitle(todo.id, titleController.text.trim());
-    }
-  }
-
   Future<bool> _confirmDeleteTodo(Todo todo) async {
     final result = await showDialog<bool>(
       context: context,
@@ -247,8 +272,7 @@ class _TodoListPageState extends State<TodoListPage> {
 
     if (result == true) {
       if (!mounted) return false;
-      await context.read<TodoProvider>().deleteTodo(todo.id);
-          .updateTodoTitle(todo.id!, titleController.text.trim());
+      await context.read<TodoProvider>().deleteTodo(todo.id!);
     }
     return false;
   }
@@ -273,11 +297,16 @@ class _TodoListPageState extends State<TodoListPage> {
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-      await context.read<TodoProvider>().deleteTodo(todo.id!);
+            child: const Text('Lưu'),
           ),
         ],
       ),
     );
+
+    if (result == true && controller.text.trim().isNotEmpty) {
+      await provider.updateStepText(step.id!, controller.text.trim());
+    }
+  }
 
   Future<void> _showAddStepDialog(
     Todo todo,
@@ -321,4 +350,4 @@ class _TodoListPageState extends State<TodoListPage> {
       }
     }
   }
-
+}
