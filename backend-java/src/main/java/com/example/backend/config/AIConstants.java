@@ -27,4 +27,3 @@ public final class AIConstants {
     public static final int MAX_TITLE_LENGTH = 200;
     public static final int FALLBACK_TITLE_LENGTH = 100;
 }
-

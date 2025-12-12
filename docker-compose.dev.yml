@@ -1,0 +1,66 @@
+services:
+  backend:
+    build:
+      context: ./backend-java
+      dockerfile: Dockerfile
+    container_name: todo-backend-dev
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    volumes:
+      - ./backend-java/src:/app/src
+      - ./data:/app/data
+    networks:
+      - todo-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend-react:
+    image: node:20-alpine
+    container_name: todo-frontend-react-dev
+    working_dir: /app
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend-react:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8080
+    depends_on:
+      - backend
+    networks:
+      - todo-network
+    restart: unless-stopped
+    command: sh -c "npm install && npm run dev -- --host"
+
+  frontend-flutter:
+    build:
+      context: ./frontend-flutter
+      dockerfile: Dockerfile
+    container_name: todo-frontend-flutter-dev
+    ports:
+      - "8081:80"
+    depends_on:
+      - backend
+    environment:
+      - BACKEND_URL=http://backend:8080
+    networks:
+      - todo-network
+    restart: unless-stopped
+
+networks:
+  todo-network:
+    driver: bridge
+
+volumes:
+  maven-cache:
+  node-modules:
