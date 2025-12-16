@@ -1,17 +1,16 @@
 import { Link } from 'react-router-dom';
-import './NotFound.css';
 
 export default function NotFound() {
     return (
-        <div className="not-found-page">
-            <div className="not-found-content">
-                <h1 className="error-code">404</h1>
-                <h2 className="error-message">Page Not Found</h2>
-                <p className="error-description">
-                    Oops! The page you're looking for doesn't exist.
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+            <div className="text-center">
+                <h1 className="text-9xl font-bold text-gray-300">404</h1>
+                <h2 className="text-3xl font-semibold text-gray-900 mt-4">Không tìm thấy trang</h2>
+                <p className="text-gray-600 mt-2 mb-8">
+                    Trang bạn đang tìm kiếm không tồn tại.
                 </p>
-                <Link to="/" className="btn-home">
-                    Go Back Home
+                <Link to="/" className="btn btn-primary text-lg px-8 py-3 inline-block">
+                    Về trang chủ
                 </Link>
             </div>
         </div>

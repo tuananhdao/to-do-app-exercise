@@ -1,0 +1,56 @@
+# Flutter related
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+
+# Android related
+android/.gradle/
+android/.idea/
+android/local.properties
+android/captures/
+android/gradlew
+android/gradlew.bat
+android/key.properties
+
+# iOS/macOS related
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+macos/Pods/
+macos/.symlinks/
+
+# Web
+web/.dart_tool/
+
+# Windows
+windows/flutter/
+
+# Linux
+linux/flutter/
+
+# Misc
+*.log
+*.pyc
+*.class
+.metadata
+.packages
+pubspec.lock

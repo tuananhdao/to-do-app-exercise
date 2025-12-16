@@ -45,5 +45,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Cần quyền truy cập microphone để sử dụng tính năng nhập task bằng giọng nói</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Cần quyền nhận diện giọng nói để chuyển đổi giọng nói thành văn bản</string>
 </dict>
 </plist>

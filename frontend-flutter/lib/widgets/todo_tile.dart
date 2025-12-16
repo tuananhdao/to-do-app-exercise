@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../models/todo.dart' show Todo;
-import '../models/todo_step.dart';
+import '../config/app_theme.dart';
+import '../models/todo.dart';
 
 class TodoTile extends StatefulWidget {
   const TodoTile({
@@ -12,6 +12,8 @@ class TodoTile extends StatefulWidget {
     required this.onEditStep,
     required this.onConfirmDelete,
     required this.onEdit,
+    required this.onAddStep,
+    required this.onDeleteStep,
   });
 
   final Todo todo;
@@ -20,33 +22,70 @@ class TodoTile extends StatefulWidget {
   final void Function(TodoStep step) onEditStep;
   final Future<bool> Function() onConfirmDelete;
   final VoidCallback onEdit;
+  final VoidCallback onAddStep;
+  final void Function(TodoStep step) onDeleteStep;
 
   @override
   State<TodoTile> createState() => _TodoTileState();
 }
 
-class _TodoTileState extends State<TodoTile> {
+class _TodoTileState extends State<TodoTile> with SingleTickerProviderStateMixin {
   bool _expanded = false;
+  late AnimationController _controller;
+  late Animation<double> _expandAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _expandAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final stepsDone =
-        widget.todo.steps.where((step) => step.completed).length;
-    final stepsTotal = widget.todo.steps.length;
-
+    final isCompleted = widget.todo.completed;
+    final completedSteps = widget.todo.steps.where((s) => s.completed).length;
+    final totalSteps = widget.todo.steps.length;
+    
     return Dismissible(
       key: ValueKey(widget.todo.id),
+      direction: isCompleted ? DismissDirection.none : DismissDirection.horizontal,
       background: _buildSwipeBackground(
         alignment: Alignment.centerLeft,
-        color: Colors.blue.shade100,
-        icon: Icons.edit,
+        gradient: LinearGradient(
+          colors: [
+            AppTheme.primary.withOpacity(0.1),
+            AppTheme.primary.withOpacity(0.05),
+          ],
+        ),
+        icon: Icons.edit_rounded,
+        iconColor: AppTheme.primary,
       ),
       secondaryBackground: _buildSwipeBackground(
         alignment: Alignment.centerRight,
-        color: Colors.red.shade100,
-        icon: Icons.delete,
+        gradient: LinearGradient(
+          colors: [
+            AppTheme.error.withOpacity(0.05),
+            AppTheme.error.withOpacity(0.1),
+          ],
+        ),
+        icon: Icons.delete_rounded,
+        iconColor: AppTheme.error,
       ),
       confirmDismiss: (direction) async {
+        if (isCompleted) return false;
         if (direction == DismissDirection.startToEnd) {
           widget.onEdit();
           return false;
@@ -54,165 +93,292 @@ class _TodoTileState extends State<TodoTile> {
         return await widget.onConfirmDelete();
       },
       child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFF7FBFF),
-              Color(0xFFE9F4FF),
-            ],
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isCompleted 
+                ? AppTheme.success.withOpacity(0.2)
+                : AppTheme.border,
+            width: 1,
           ),
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
-              color: Color(0x332196F3),
-              blurRadius: 18,
-              offset: Offset(0, 12),
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
           ],
-          border: Border.all(
-            color: widget.todo.completed
-                ? const Color(0xFF22C55E).withOpacity(0.35)
-                : const Color(0xFF0EA5E9).withOpacity(0.30),
-            width: 1.0,
-          ),
         ),
-        child: ExpansionTile(
-          collapsedIconColor: const Color(0xFF0F172A),
-          iconColor: const Color(0xFF0F172A),
-          initiallyExpanded: false,
-          maintainState: true,
-          onExpansionChanged: (value) {
-            setState(() => _expanded = value);
-          },
-          tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          childrenPadding: const EdgeInsets.only(
-            left: 14,
-            right: 12,
-            bottom: 14,
-          ),
-          trailing: AnimatedRotation(
-            duration: const Duration(milliseconds: 200),
-            turns: _expanded ? 0.5 : 0,
-            child: const Icon(Icons.expand_more, color: Color(0xFF0F172A)),
-          ),
-          leading: Checkbox(
-            value: widget.todo.completed,
-            onChanged: (_) => widget.onToggleTodo(),
-            activeColor: const Color(0xFF0EA5E9),
-            checkColor: Colors.white,
-            side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
-          ),
-          title: Row(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Column(
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.todo.title,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 18,
-                        color: const Color(0xFF0F172A),
-                        decoration: widget.todo.completed
-                            ? TextDecoration.lineThrough
-                            : TextDecoration.none,
-                        decorationColor: const Color(0xFF94A3B8),
-                      ),
+              // Header
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: totalSteps > 0 ? () {
+                    setState(() {
+                      _expanded = !_expanded;
+                      if (_expanded) {
+                        _controller.forward();
+                      } else {
+                        _controller.reverse();
+                      }
+                    });
+                  } : null,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Checkbox - Microsoft To Do style
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Container(
+                            width: 20,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: isCompleted ? AppTheme.primary : Colors.transparent,
+                              border: Border.all(
+                                color: isCompleted ? AppTheme.primary : AppTheme.textTertiary,
+                                width: 2,
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: InkWell(
+                              onTap: () => widget.onToggleTodo(),
+                              borderRadius: BorderRadius.circular(20),
+                              child: isCompleted
+                                  ? const Icon(
+                                      Icons.check,
+                                      size: 14,
+                                      color: Colors.white,
+                                    )
+                                  : null,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        
+                        // Title and Progress
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.todo.title,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w400,
+                                  height: 1.4,
+                                  decoration: isCompleted
+                                      ? TextDecoration.lineThrough
+                                      : null,
+                                  color: isCompleted
+                                      ? AppTheme.textTertiary
+                                      : AppTheme.textPrimary,
+                                ),
+                              ),
+                              if (totalSteps > 0) ...[
+                                const SizedBox(height: 6),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.check_circle_outline,
+                                      size: 14,
+                                      color: completedSteps == totalSteps
+                                          ? AppTheme.success
+                                          : AppTheme.textTertiary,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '$completedSteps of $totalSteps',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: completedSteps == totalSteps
+                                            ? AppTheme.success
+                                            : AppTheme.textSecondary,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        
+                        // Action Buttons
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (totalSteps > 0)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 4),
+                                child: RotationTransition(
+                                  turns: Tween(begin: 0.0, end: 0.5).animate(_expandAnimation),
+                                  child: Icon(
+                                    Icons.chevron_right,
+                                    color: AppTheme.textTertiary,
+                                    size: 20,
+                                  ),
+                                ),
+                              ),
+                            IconButton(
+                              icon: Icon(
+                                Icons.add,
+                                color: isCompleted
+                                    ? AppTheme.textTertiary
+                                    : AppTheme.textSecondary,
+                                size: 20,
+                              ),
+                              onPressed: isCompleted ? null : widget.onAddStep,
+                              tooltip: 'Add step',
+                              constraints: const BoxConstraints(
+                                minWidth: 32,
+                                minHeight: 32,
+                              ),
+                              padding: EdgeInsets.zero,
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                    if (widget.todo.createdAt != null)
-                      Text(
-                        'Created: ${widget.todo.createdAt}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF94A3B8),
+                  ),
+                ),
+              ),
+              
+              // Steps List
+              if (totalSteps > 0)
+                SizeTransition(
+                  sizeFactor: _expandAnimation,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppTheme.background,
+                      border: Border(
+                        top: BorderSide(
+                          color: AppTheme.border,
+                          width: 0.5,
                         ),
                       ),
-                  ],
+                    ),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      itemCount: widget.todo.steps.length,
+                      itemBuilder: (context, index) {
+                        final step = widget.todo.steps[index];
+                        return _buildStepItem(step, isCompleted);
+                      },
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStepItem(TodoStep step, bool todoCompleted) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => widget.onToggleStep(step),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Checkbox - smaller for substeps
+              Padding(
+                padding: const EdgeInsets.only(top: 2, left: 32),
+                child: Container(
+                  width: 16,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    color: step.completed ? AppTheme.primary : Colors.transparent,
+                    border: Border.all(
+                      color: step.completed ? AppTheme.primary : AppTheme.textTertiary,
+                      width: 2,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: step.completed
+                      ? const Icon(
+                          Icons.check,
+                          size: 10,
+                          color: Colors.white,
+                        )
+                      : null,
                 ),
               ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE0F2FE),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFBAE6FD)),
+              const SizedBox(width: 12),
+              
+              // Step Text
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 1),
+                  child: Text(
+                    step.items,
+                    style: TextStyle(
+                      fontSize: 14,
+                      height: 1.4,
+                      decoration: step.completed
+                          ? TextDecoration.lineThrough
+                          : null,
+                      color: step.completed
+                          ? AppTheme.textTertiary
+                          : AppTheme.textSecondary,
+                    ),
+                  ),
                 ),
-                child: Row(
-                  children: [
-                    Icon(
-                      widget.todo.completed
-                          ? Icons.check_circle
-                          : Icons.timelapse,
+              ),
+              
+              // Actions - compact
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      Icons.edit_outlined,
                       size: 16,
-                      color: widget.todo.completed
-                          ? const Color(0xFF22C55E)
-                          : const Color(0xFF0EA5E9),
+                      color: todoCompleted
+                          ? AppTheme.textTertiary
+                          : AppTheme.textSecondary,
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      '$stepsDone/$stepsTotal',
-                      style: const TextStyle(
-                        color: Color(0xFF0F172A),
-                        fontWeight: FontWeight.w700,
-                        fontSize: 12,
-                      ),
+                    onPressed: todoCompleted ? null : () => widget.onEditStep(step),
+                    tooltip: 'Edit',
+                    constraints: const BoxConstraints(
+                      minWidth: 28,
+                      minHeight: 28,
                     ),
-                  ],
-                ),
+                    padding: EdgeInsets.zero,
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      Icons.close,
+                      size: 16,
+                      color: todoCompleted
+                          ? AppTheme.textTertiary
+                          : AppTheme.textSecondary,
+                    ),
+                    onPressed: todoCompleted ? null : () => widget.onDeleteStep(step),
+                    tooltip: 'Delete',
+                    constraints: const BoxConstraints(
+                      minWidth: 28,
+                      minHeight: 28,
+                    ),
+                    padding: EdgeInsets.zero,
+                  ),
+                ],
               ),
             ],
           ),
-          children: [
-            ...widget.todo.steps.map(
-              (step) => Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                decoration: BoxDecoration(
-                  color: step.completed
-                      ? const Color(0xFFDBEAFE) // soft indigo tint
-                      : const Color(0xFFE0F2FE), // light sky tint
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: step.completed
-                        ? const Color(0xFF6366F1).withOpacity(0.35)
-                        : const Color(0xFF7DD3FC).withOpacity(0.45),
-                  ),
-                ),
-                child: CheckboxListTile(
-                  value: step.completed,
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                  controlAffinity: ListTileControlAffinity.leading,
-                  activeColor: const Color(0xFF0EA5E9),
-                  checkColor: Colors.white,
-                  title: Text(
-                    step.items,
-                    style: TextStyle(
-                      decoration: step.completed
-                          ? TextDecoration.lineThrough
-                          : TextDecoration.none,
-                      color: step.completed
-                          ? const Color(0xFF4B5563)
-                          : const Color(0xFF0F172A),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  onChanged: (_) => widget.onToggleStep(step),
-                  secondary: IconButton(
-                    icon: const Icon(Icons.edit,
-                        size: 18, color: Color(0xFF0F172A)),
-                    tooltip: 'Sửa step',
-                    onPressed: () => widget.onEditStep(step),
-                  ),
-                ),
-              ),
-            ),
-          ],
         ),
       ),
     );
@@ -220,15 +386,19 @@ class _TodoTileState extends State<TodoTile> {
 
   Widget _buildSwipeBackground({
     required Alignment alignment,
-    required Color color,
+    required Gradient gradient,
     required IconData icon,
+    required Color iconColor,
   }) {
     return Container(
-      color: color,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        gradient: gradient,
+        borderRadius: BorderRadius.circular(8),
+      ),
       alignment: alignment,
-      child: Icon(icon, color: Colors.black54),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Icon(icon, color: iconColor, size: 22),
     );
   }
 }
-

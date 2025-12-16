@@ -1,12 +1,12 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 // ignore_for_file: use_build_context_synchronously
 
 import '../models/todo.dart';
-import '../models/todo_step.dart';
 import '../providers/todo_provider.dart';
 import '../widgets/todo_tile.dart';
+import '../widgets/voice_input_dialog.dart';
 
 class TodoListPage extends StatefulWidget {
   const TodoListPage({super.key});
@@ -28,120 +28,97 @@ class _TodoListPageState extends State<TodoListPage> {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
-        centerTitle: true,
         flexibleSpace: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF5CA7FF), // bright sky
-              Color(0xFF7FD8FF), // aqua
-              Color(0xFFA9F5FF), // soft teal highlight
-            ],
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFFEAF1FB),
+                Color(0xFFDCE7F7),
+              ],
+            ),
           ),
-        ),
         ),
         title: const Text(
           'Todo List',
-          style: TextStyle(
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-            letterSpacing: 0.8,
-          ),
+          style: TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
-      backgroundColor: Colors.transparent,
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFE9F4FF),
-              Color(0xFFE6F8FF),
-              Color(0xFFF4FBFF),
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Consumer<TodoProvider>(
-            builder: (context, todoProvider, _) {
-              if (todoProvider.isLoading) {
-                return const Center(child: CircularProgressIndicator());
-              }
+      body: Consumer<TodoProvider>(
+        builder: (context, todoProvider, _) {
+          if (todoProvider.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-              if (todoProvider.error != null) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Error: ${todoProvider.error}',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.redAccent,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.refresh),
-                        onPressed: () => todoProvider.fetchTodos(),
-                        label: const Text('Retry'),
-                      ),
-                    ],
+          if (todoProvider.error != null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Error: ${todoProvider.error}',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.redAccent,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                );
-              }
-
-              if (todoProvider.todos.isEmpty) {
-                return const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.inbox_outlined,
-                          size: 54, color: Colors.white70),
-                      SizedBox(height: 12),
-                      Text(
-                        'Chưa có todo nào',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.refresh),
+                    onPressed: () => todoProvider.fetchTodos(),
+                    label: const Text('Retry'),
                   ),
-                );
-              }
+                ],
+              ),
+            );
+          }
 
-              return RefreshIndicator(
-                color: const Color(0xFF0EA5E9),
-                onRefresh: todoProvider.fetchTodos,
-                child: ListView.separated(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                  itemCount: todoProvider.todos.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final todo = todoProvider.todos[index];
-                    return TodoTile(
-                      todo: todo,
-                      onToggleTodo: () => todoProvider.toggleTodo(todo.id),
-                      onToggleStep: (TodoStep step) =>
-                          todoProvider.toggleStep(step.id),
-                      onEditStep: (TodoStep step) =>
-                          _showEditStepDialog(step, todoProvider),
-                      onConfirmDelete: () => _confirmDeleteTodo(todo),
-                      onEdit: () => _showEditTitleDialog(todo),
-                    );
-                  },
-                ),
-              );
-            },
-          ),
-        ),
+          if (todoProvider.todos.isEmpty) {
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.inbox_outlined, size: 48, color: Colors.grey),
+                  SizedBox(height: 12),
+                  Text(
+                    'Chưa có todo nào',
+                    style: TextStyle(
+                      color: Color(0xFF6B7280),
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return RefreshIndicator(
+            onRefresh: todoProvider.fetchTodos,
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+              itemCount: todoProvider.todos.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 10),
+              itemBuilder: (context, index) {
+                final todo = todoProvider.todos[index];
+                return TodoTile(
+                  todo: todo,
+                  onToggleTodo: () => todoProvider.toggleTodo(todo.id!),
+                  onToggleStep: (TodoStep step) =>
+                      todoProvider.toggleStep(step.id!),
+                  onEditStep: (TodoStep step) =>
+                      _showEditStepDialog(step, todoProvider),
+                  onConfirmDelete: () => _confirmDeleteTodo(todo),
+                  onEdit: () => _showEditTitleDialog(todo),
+                  onAddStep: () => _showAddStepDialog(todo, todoProvider),
+                  onDeleteStep: (TodoStep step) =>
+                      todoProvider.deleteStep(step.id!),
+                );
+              },
+            ),
+          );
+        },
       ),
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
@@ -150,11 +127,8 @@ class _TodoListPageState extends State<TodoListPage> {
           FloatingActionButton(
             heroTag: 'mic-fab',
             mini: true,
-            tooltip: 'Voice input (coming soon)',
-            onPressed: () {
-              // Placeholder for future voice input.
-            },
-            backgroundColor: const Color(0xFFE8ECF5),
+            tooltip: 'Voice input / AI Task Generator',
+            onPressed: _showVoiceInputDialog,
             foregroundColor: const Color(0xFF3E5F8A),
             child: const Icon(Icons.mic_none),
           ),
@@ -223,6 +197,7 @@ class _TodoListPageState extends State<TodoListPage> {
 
   Future<void> _showEditTitleDialog(Todo todo) async {
     final titleController = TextEditingController(text: todo.title);
+
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -245,10 +220,34 @@ class _TodoListPageState extends State<TodoListPage> {
     );
 
     if (result == true && titleController.text.trim().isNotEmpty) {
-      if (!mounted) return;
       await context
           .read<TodoProvider>()
-          .updateTodoTitle(todo.id, titleController.text.trim());
+          .updateTodoTitle(todo.id!, titleController.text.trim());
+    }
+  }
+
+  /// Show voice input dialog for AI-powered task generation
+  Future<void> _showVoiceInputDialog() async {
+    final result = await showDialog<Todo>(
+      context: context,
+      builder: (context) => const VoiceInputDialog(),
+    );
+
+    // If a todo was generated (returned from dialog), refresh the list
+    if (result != null) {
+      if (!mounted) return;
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Todo "${result.title}" đã được tạo thành công!'),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      // Refresh the todo list to show the newly created todo
+      await context.read<TodoProvider>().fetchTodos();
     }
   }
 
@@ -273,8 +272,7 @@ class _TodoListPageState extends State<TodoListPage> {
 
     if (result == true) {
       if (!mounted) return false;
-      await context.read<TodoProvider>().deleteTodo(todo.id);
-      return true;
+      await context.read<TodoProvider>().deleteTodo(todo.id!);
     }
     return false;
   }
@@ -306,19 +304,50 @@ class _TodoListPageState extends State<TodoListPage> {
     );
 
     if (result == true && controller.text.trim().isNotEmpty) {
+      await provider.updateStepText(step.id!, controller.text.trim());
+    }
+  }
+
+  Future<void> _showAddStepDialog(
+    Todo todo,
+    TodoProvider provider,
+  ) async {
+    final controller = TextEditingController();
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Thêm task con'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(labelText: 'Nội dung'),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Hủy'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Thêm'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true && controller.text.trim().isNotEmpty) {
       try {
-        await provider.updateStepText(step.id, controller.text.trim());
+        await provider.addStepToTodo(todo.id!, controller.text.trim());
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Đã cập nhật task con')),
+          const SnackBar(content: Text('Đã thêm task con')),
         );
       } catch (_) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lỗi khi cập nhật task con')),
+          const SnackBar(content: Text('Lỗi khi thêm task con')),
         );
       }
     }
   }
 }
-

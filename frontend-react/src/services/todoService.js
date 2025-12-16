@@ -1,8 +1,6 @@
 import api from './api';
 
 // Todo service functions for API calls
-// Currently using localStorage, but these can be activated when backend is ready
-
 const todoService = {
   // Get all todos
   getAll: async () => {
@@ -34,10 +32,10 @@ const todoService = {
     }
   },
 
-  // Update a todo
+  // Update a todo (use PATCH as per backend)
   update: async (id, todoData) => {
     try {
-      return await api.put(`/todos/${id}`, todoData);
+      return await api.patch(`/todos/${id}`, todoData);
     } catch (error) {
       console.error('Error updating todo:', error);
       throw error;
@@ -50,6 +48,36 @@ const todoService = {
       return await api.delete(`/todos/${id}`);
     } catch (error) {
       console.error('Error deleting todo:', error);
+      throw error;
+    }
+  },
+
+  // Add a new item/step to an existing todo
+  addItemToTodo: async (todoId, itemData) => {
+    try {
+      return await api.post(`/todos/${todoId}/items`, itemData);
+    } catch (error) {
+      console.error('Error adding item to todo:', error);
+      throw error;
+    }
+  },
+
+  // Update a step (use PATCH as per backend)
+  updateStep: async (stepId, stepData) => {
+    try {
+      return await api.patch(`/todos/items/${stepId}`, stepData);
+    } catch (error) {
+      console.error('Error updating step:', error);
+      throw error;
+    }
+  },
+
+  // Delete a step
+  deleteStep: async (stepId) => {
+    try {
+      return await api.delete(`/todos/items/${stepId}`);
+    } catch (error) {
+      console.error('Error deleting step:', error);
       throw error;
     }
   },

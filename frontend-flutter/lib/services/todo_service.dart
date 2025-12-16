@@ -1,159 +1,94 @@
-import 'dart:convert';
-
-import 'package:http/http.dart' as http;
-
-import '../config/constants.dart';
-import '../models/api_response.dart';
 import '../models/todo.dart';
-import '../models/todo_step.dart';
+import 'api_service.dart';
 
-/// Encapsulates all Todo-related API calls.
 class TodoService {
-  TodoService({http.Client? client}) : _client = client ?? http.Client();
+  final ApiService _apiService;
 
-  final http.Client _client;
+  TodoService({ApiService? apiService})
+      : _apiService = apiService ?? ApiService();
 
-  Map<String, String> get _jsonHeaders => const {
-        'Content-Type': 'application/json',
-      };
-
-  ApiResponse<T> _parseResponse<T>(
-    http.Response response,
-    T Function(Object? json) fromJsonT,
-  ) {
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception(
-        'Request failed (${response.statusCode}): ${response.reasonPhrase}',
-      );
-    }
-
-    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-    return ApiResponse<T>.fromJson(decoded, fromJsonT);
-  }
-
+  // Get all todos
   Future<List<Todo>> getAllTodos() async {
-    final res = await _client.get(Uri.parse(TODOS_BASE_URL));
-    final apiRes = _parseResponse<List<Todo>>(res, (json) {
-      final list = (json as List<dynamic>? ?? []);
-      return list
-          .map((item) => Todo.fromJson(item as Map<String, dynamic>))
-          .toList();
-    });
-
-    return apiRes.data ?? [];
+    return await _apiService.getAllTodos();
   }
 
-  Future<Todo> createTodo(String title, List<String> steps) async {
-    final body = {
-      'title': title,
-      'completed': false,
-      'steps': steps
-          .map((s) => {
-                'items': s,
-                'completed': false,
-              })
-          .toList(),
-    };
+  // Create a new todo
+  Future<Todo> createTodo(String title, List<String> stepTitles) async {
+    final steps = stepTitles
+        .where((title) => title.trim().isNotEmpty)
+        .map((title) => TodoStep(title: title, completed: false))
+        .toList();
 
-    final res = await _client.post(
-      Uri.parse(TODOS_BASE_URL),
-      headers: _jsonHeaders,
-      body: jsonEncode(body),
+    return await _apiService.createTodo(
+      title: title,
+      steps: steps.isNotEmpty ? steps : null,
     );
-
-    final apiRes = _parseResponse<Todo>(
-      res,
-      (json) => Todo.fromJson(json as Map<String, dynamic>),
-    );
-
-    if (apiRes.data == null) {
-      throw Exception(apiRes.message ?? 'Unknown error when creating todo');
-    }
-    return apiRes.data!;
   }
 
-  Future<Todo> toggleTodo(int todoId, bool currentCompleted) async {
-    final res = await _client.patch(
-      Uri.parse('$TODOS_BASE_URL/$todoId'),
-      headers: _jsonHeaders,
-      body: jsonEncode({'completed': !currentCompleted}),
-    );
-
-    final apiRes = _parseResponse<Todo>(
-      res,
-      (json) => Todo.fromJson(json as Map<String, dynamic>),
-    );
-
-    if (apiRes.data == null) {
-      throw Exception(apiRes.message ?? 'Failed to toggle todo');
-    }
-    return apiRes.data!;
-  }
-
+  // Update todo title
   Future<Todo> updateTodoTitle(int todoId, String newTitle) async {
-    final res = await _client.patch(
-      Uri.parse('$TODOS_BASE_URL/$todoId'),
-      headers: _jsonHeaders,
-      body: jsonEncode({'title': newTitle}),
+    return await _apiService.updateTodo(
+      id: todoId,
+      title: newTitle,
     );
-
-    final apiRes = _parseResponse<Todo>(
-      res,
-      (json) => Todo.fromJson(json as Map<String, dynamic>),
-    );
-
-    if (apiRes.data == null) {
-      throw Exception(apiRes.message ?? 'Failed to update title');
-    }
-    return apiRes.data!;
   }
 
+  // Toggle todo completion (toggle all steps)
+  Future<Todo> toggleTodo(int todoId, bool completed) async {
+    return await _apiService.updateTodo(
+      id: todoId,
+      completed: completed,
+    );
+  }
+
+  // Delete todo
   Future<void> deleteTodo(int todoId) async {
-    final res = await _client.delete(
-      Uri.parse('$TODOS_BASE_URL/$todoId'),
-      headers: _jsonHeaders,
-    );
-
-    _parseResponse<String?>(res, (json) => json?.toString());
+    await _apiService.deleteTodo(todoId);
   }
 
-  Future<TodoStep> toggleStep(int stepId, bool currentCompleted) async {
-    final res = await _client.patch(
-      Uri.parse('$TODOS_BASE_URL/items/$stepId'),
-      headers: _jsonHeaders,
-      body: jsonEncode({'completed': !currentCompleted}),
-    );
-
-    final apiRes = _parseResponse<TodoStep>(
-      res,
-      (json) => TodoStep.fromJson(json as Map<String, dynamic>),
-    );
-
-    if (apiRes.data == null) {
-      throw Exception(apiRes.message ?? 'Failed to toggle step');
-    }
-    return apiRes.data!;
-  }
-
-  Future<void> updateStepText(int stepId, String newText) async {
-    final res = await _client.patch(
-      Uri.parse('$TODOS_BASE_URL/items/$stepId'),
-      headers: _jsonHeaders,
-      body: jsonEncode({'text': newText}),
-    );
-
-    _parseResponse<TodoStep>(
-      res,
-      (json) => TodoStep.fromJson(json as Map<String, dynamic>),
+  // Add step to todo
+  Future<Todo> addStepToTodo(int todoId, String stepTitle) async {
+    return await _apiService.addStepToTodo(
+      todoId: todoId,
+      stepTitle: stepTitle,
     );
   }
 
+  // Update step
+  Future<TodoStep> updateStep({
+    required int stepId,
+    String? title,
+    bool? completed,
+  }) async {
+    return await _apiService.updateStep(
+      stepId: stepId,
+      title: title,
+      completed: completed,
+    );
+  }
+
+  // Toggle step completion
+  Future<TodoStep> toggleStep(int stepId, bool completed) async {
+    return await _apiService.updateStep(
+      stepId: stepId,
+      completed: completed,
+    );
+  }
+
+  // Update step title
+  Future<TodoStep> updateStepTitle(int stepId, String newTitle) async {
+    return await _apiService.updateStep(
+      stepId: stepId,
+      title: newTitle,
+    );
+  }
+
+  // Delete step
   Future<void> deleteStep(int stepId) async {
-    final res = await _client.delete(
-      Uri.parse('$TODOS_BASE_URL/items/$stepId'),
-      headers: _jsonHeaders,
-    );
+    await _apiService.deleteStep(stepId);
+  }
 
-    _parseResponse<String?>(res, (json) => json?.toString());
+  void dispose() {
+    _apiService.dispose();
   }
 }

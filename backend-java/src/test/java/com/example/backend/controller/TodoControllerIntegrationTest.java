@@ -12,28 +12,22 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.context.WebApplicationContext;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.web.context.WebApplicationContext;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-/**
- * Integration tests cho TodoController
- * - Sử dụng H2 (profile "test")
- * - Dùng MockMvc để gọi trực tiếp REST API
- */
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
 @DisplayName("TodoController Integration Tests")
-class TodoControllerIntegrationTest {
+public class TodoControllerIntegrationTest {
+
 
     private MockMvc mockMvc;
 
@@ -50,8 +44,248 @@ class TodoControllerIntegrationTest {
     void cleanDatabase() {
         todoStepRepository.deleteAll();
         todoRepository.deleteAll();
-        // Build MockMvc manually since AutoConfigureMockMvc is not available in Spring Boot 4
         this.mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+    }
+
+    // =========================
+    // GET /api/v1/todos
+    // =========================
+
+    @Test
+    void test_getAllTodos_shouldReturn200_withEmptyList() throws Exception {
+        mockMvc.perform(get("/api/v1/todos"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.code").value(1000))
+                .andExpect(jsonPath("$.message").value("Success"))
+                .andExpect(jsonPath("$.result").isArray())
+                .andExpect(jsonPath("$.result.length()").value(0));
+    }
+
+    @Test
+    void test_getAllTodos_shouldReturn200_withTodosList() throws Exception {
+        Todo todo1 = new Todo();
+        todo1.setTitle("Todo 1");
+        todo1.setCompleted(false);
+
+        Todo todo2 = new Todo();
+        todo2.setTitle("Todo 2");
+        todo2.setCompleted(true);
+
+        todoRepository.save(todo1);
+        todoRepository.save(todo2);
+
+        mockMvc.perform(get("/api/v1/todos"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.code").value(1000))
+                .andExpect(jsonPath("$.message").value("Success"))
+                .andExpect(jsonPath("$.result").isArray())
+                .andExpect(jsonPath("$.result.length()").value(2))
+                .andExpect(jsonPath("$.result[0].title").value("Todo 1"))
+                .andExpect(jsonPath("$.result[1].title").value("Todo 2"));
+    }
+
+    // =========================
+    // POST /api/v1/todos
+    // =========================
+
+    @Test
+    void test_createTodo_shouldReturn200_withValidData() throws Exception {
+        String requestJson = """
+                {
+                  "title": "Buy milk",
+                  "completed": false
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/todos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestJson))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.code").value(1000))
+                .andExpect(jsonPath("$.message").value("Success"))
+                .andExpect(jsonPath("$.result.id").isNumber())
+                .andExpect(jsonPath("$.result.title").value("Buy milk"))
+                .andExpect(jsonPath("$.result.completed").value(false));
+
+        List<Todo> todos = todoRepository.findAll();
+        assertEquals(1, todos.size());
+        assertEquals("Buy milk", todos.get(0).getTitle());
+        assertFalse(todos.get(0).isCompleted());
+    }
+
+    @Test
+    void test_createTodo_shouldReturn200_withSteps() throws Exception {
+        String requestJson = """
+                {
+                  "title": "Todo with steps",
+                  "completed": false,
+                  "steps": [
+                    { "items": "Step 1", "completed": false },
+                    { "items": "Step 2", "completed": true }
+                  ]
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/todos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestJson))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.code").value(1000))
+                .andExpect(jsonPath("$.message").value("Success"))
+                .andExpect(jsonPath("$.result.id").isNumber())
+                .andExpect(jsonPath("$.result.title").value("Todo with steps"))
+                .andExpect(jsonPath("$.result.steps").isArray())
+                .andExpect(jsonPath("$.result.steps.length()").value(2))
+                .andExpect(jsonPath("$.result.steps[0].items").value("Step 1"))
+                .andExpect(jsonPath("$.result.steps[1].items").value("Step 2"));
+
+        List<Todo> todos = todoRepository.findAll();
+        assertEquals(1, todos.size());
+        assertEquals(2, todos.get(0).getSteps().size());
+    }
+
+    @Test
+    void test_createTodo_shouldReturn400_whenTitleIsNull() throws Exception {
+        String requestJson = """
+                {
+                  "completed": false
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/todos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.code").value(9999))
+                .andExpect(jsonPath("$.message").value("Title must not be empty"));
+    }
+
+    @Test
+    void test_createTodo_shouldReturn400_whenTitleIsBlank() throws Exception {
+        String requestJson = """
+                {
+                  "title": " "
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/todos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.code").value(9999))
+                .andExpect(jsonPath("$.message").value("Title must not be empty"));
+    }
+
+    @Test
+    void test_createTodo_shouldReturn400_whenStepItemsIsBlank() throws Exception {
+        String requestJson = """
+                {
+                  "title": "Todo with invalid step",
+                  "completed": false,
+                  "steps": [
+                    { "items": "", "completed": false }
+                  ]
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/todos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.code").value(9999))
+                .andExpect(jsonPath("$.message").value("Step items must not be empty"));
+    }
+
+
+    // =========================
+    // POST /api/v1/todos/{todoId}/items
+    // =========================
+
+    @Test
+    @DisplayName("POST /todos/{todoId}/items - add step successfully -> 200")
+    void test_addStepToTodo_shouldReturn200_whenValidRequest() throws Exception {
+        // Arrange: tạo 1 todo cha
+        Todo todo = new Todo();
+        todo.setTitle("Parent todo");
+        todo.setCompleted(false);
+        todo = todoRepository.save(todo);
+
+        String requestJson = """
+                {
+                  "items": "New step",
+                  "completed": true
+                }
+                """;
+
+        // Act + Assert
+        mockMvc.perform(post("/api/v1/todos/{todoId}/items", todo.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestJson))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.code").value(1000))
+                .andExpect(jsonPath("$.message").value("Success"))
+                .andExpect(jsonPath("$.result.id").value(todo.getId().intValue()))
+                .andExpect(jsonPath("$.result.steps").isArray())
+                .andExpect(jsonPath("$.result.steps.length()").value(1))
+                .andExpect(jsonPath("$.result.steps[0].items").value("New step"))
+                .andExpect(jsonPath("$.result.steps[0].completed").value(true));
+
+
+        Todo reloaded = todoRepository.findById(todo.getId()).orElseThrow();
+        assertThat(reloaded.getSteps()).hasSize(1);
+        assertThat(reloaded.getSteps().get(0).getItems()).isEqualTo("New step");
+        assertThat(reloaded.getSteps().get(0).isCompleted()).isTrue();
+    }
+
+    @Test
+    @DisplayName("POST /todos/{todoId}/items - blank items -> 400")
+    void test_addStepToTodo_shouldReturn400_whenItemsBlank() throws Exception {
+        Todo todo = new Todo();
+        todo.setTitle("Parent todo");
+        todo.setCompleted(false);
+        todo = todoRepository.save(todo);
+
+        String requestJson = """
+                {
+                  "items": " ",
+                  "completed": false
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/todos/{todoId}/items", todo.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.code").value(9999))
+                .andExpect(jsonPath("$.message").value("Step items must not be empty"));
+    }
+
+    @Test
+    @DisplayName("POST /todos/{todoId}/items - todo not found -> 404")
+    void test_addStepToTodo_shouldReturn404_whenTodoNotFound() throws Exception {
+        String requestJson = """
+                {
+                  "items": "New step",
+                  "completed": false
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/todos/{todoId}/items", 999)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestJson))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.code").value(404))
+                .andExpect(jsonPath("$.message").value("Todo not found with id: 999"));
     }
 
     // =========================
@@ -103,7 +337,7 @@ class TodoControllerIntegrationTest {
 
         mockMvc.perform(delete("/api/v1/todos/{id}", todo.getId()))
                 .andExpect(status().isOk())
-            .andExpect(jsonPath("$.result").value("Deleted successfully"));
+                .andExpect(jsonPath("$.result").value("Deleted successfully"));
 
         assertThat(todoRepository.findById(todo.getId())).isEmpty();
     }
@@ -122,11 +356,11 @@ class TodoControllerIntegrationTest {
     @Test
     @DisplayName("PATCH /items/{id} - update items -> 200")
     void test_updateStep_shouldReturn200_whenUpdateItems() throws Exception {
-        TodoStep step = createTodoWithSingleStep("Todo", "Old items", false);
+        TodoStep step = createTodoWithSingleStep("Old items", false);
 
         mockMvc.perform(patch("/api/v1/todos/items/{id}", step.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"text\":\"Updated items\"}"))
+                        .content("{\"text\":\"Updated items\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result.items").value("Updated items"));
     }
@@ -134,7 +368,7 @@ class TodoControllerIntegrationTest {
     @Test
     @DisplayName("PATCH /items/{id} - update completed -> 200")
     void test_updateStep_shouldReturn200_whenUpdateCompleted() throws Exception {
-        TodoStep step = createTodoWithSingleStep("Todo", "Work", false);
+        TodoStep step = createTodoWithSingleStep("Work", false);
 
         mockMvc.perform(patch("/api/v1/todos/items/{id}", step.getId())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -146,12 +380,12 @@ class TodoControllerIntegrationTest {
     @Test
     @DisplayName("PATCH /items/{id} - blank items -> 400")
     void test_updateStep_shouldReturn400_whenItemsIsBlank() throws Exception {
-        TodoStep step = createTodoWithSingleStep("Todo", "Work", false);
+        TodoStep step = createTodoWithSingleStep("Work", false);
 
         mockMvc.perform(patch("/api/v1/todos/items/{id}", step.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"text\":\" \"}"))
-            .andExpect(status().isBadRequest());
+                        .content("{\"text\":\" \"}"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -170,11 +404,11 @@ class TodoControllerIntegrationTest {
     @Test
     @DisplayName("DELETE /items/{id} - exists -> 200")
     void test_deleteStep_shouldReturn200_whenStepExists() throws Exception {
-        TodoStep step = createTodoWithSingleStep("Todo", "Step", false);
+        TodoStep step = createTodoWithSingleStep("Step", false);
 
         mockMvc.perform(delete("/api/v1/todos/items/{id}", step.getId()))
                 .andExpect(status().isOk())
-            .andExpect(jsonPath("$.result").value("Step deleted successfully"));
+                .andExpect(jsonPath("$.result").value("Step deleted successfully"));
 
         assertThat(todoStepRepository.findById(step.getId())).isEmpty();
     }
@@ -197,9 +431,9 @@ class TodoControllerIntegrationTest {
         return todoRepository.save(todo);
     }
 
-    private TodoStep createTodoWithSingleStep(String title, String items, boolean completed) {
+    private TodoStep createTodoWithSingleStep(String items, boolean completed) {
         Todo todo = new Todo();
-        todo.setTitle(title);
+        todo.setTitle("Todo");
         todo.setCompleted(false);
 
         TodoStep step = new TodoStep();
