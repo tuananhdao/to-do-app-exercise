@@ -28,94 +28,120 @@ class _TodoListPageState extends State<TodoListPage> {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
+        centerTitle: true,
         flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFFEAF1FB),
-                Color(0xFFDCE7F7),
-              ],
-            ),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF5CA7FF), // bright sky
+              Color(0xFF7FD8FF), // aqua
+              Color(0xFFA9F5FF), // soft teal highlight
+            ],
           ),
+        ),
         ),
         title: const Text(
           'Todo List',
-          style: TextStyle(fontWeight: FontWeight.w700),
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+            letterSpacing: 0.8,
+          ),
         ),
       ),
-      body: Consumer<TodoProvider>(
-        builder: (context, todoProvider, _) {
-          if (todoProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFE9F4FF),
+              Color(0xFFE6F8FF),
+              Color(0xFFF4FBFF),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Consumer<TodoProvider>(
+            builder: (context, todoProvider, _) {
+              if (todoProvider.isLoading) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-          if (todoProvider.error != null) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Error: ${todoProvider.error}',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.redAccent,
-                      fontWeight: FontWeight.w600,
-                    ),
+              if (todoProvider.error != null) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Error: ${todoProvider.error}',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.redAccent,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.refresh),
+                        onPressed: () => todoProvider.fetchTodos(),
+                        label: const Text('Retry'),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.refresh),
-                    onPressed: () => todoProvider.fetchTodos(),
-                    label: const Text('Retry'),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          if (todoProvider.todos.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.inbox_outlined, size: 48, color: Colors.grey),
-                  SizedBox(height: 12),
-                  Text(
-                    'Chưa có todo nào',
-                    style: TextStyle(
-                      color: Color(0xFF6B7280),
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: todoProvider.fetchTodos,
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-              itemCount: todoProvider.todos.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 10),
-              itemBuilder: (context, index) {
-                final todo = todoProvider.todos[index];
-                return TodoTile(
-                  todo: todo,
-                  onToggleTodo: () => todoProvider.toggleTodo(todo.id),
-                  onToggleStep: (TodoStep step) =>
-                      todoProvider.toggleStep(step.id),
-                  onEditStep: (TodoStep step) =>
-                      _showEditStepDialog(step, todoProvider),
-                  onConfirmDelete: () => _confirmDeleteTodo(todo),
-                  onEdit: () => _showEditTitleDialog(todo),
                 );
-              },
-            ),
-          );
-        },
+              }
+
+              if (todoProvider.todos.isEmpty) {
+                return const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.inbox_outlined,
+                          size: 54, color: Colors.white70),
+                      SizedBox(height: 12),
+                      Text(
+                        'Chưa có todo nào',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return RefreshIndicator(
+                color: const Color(0xFF0EA5E9),
+                onRefresh: todoProvider.fetchTodos,
+                child: ListView.separated(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  itemCount: todoProvider.todos.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final todo = todoProvider.todos[index];
+                    return TodoTile(
+                      todo: todo,
+                      onToggleTodo: () => todoProvider.toggleTodo(todo.id),
+                      onToggleStep: (TodoStep step) =>
+                          todoProvider.toggleStep(step.id),
+                      onEditStep: (TodoStep step) =>
+                          _showEditStepDialog(step, todoProvider),
+                      onConfirmDelete: () => _confirmDeleteTodo(todo),
+                      onEdit: () => _showEditTitleDialog(todo),
+                    );
+                  },
+                ),
+              );
+            },
+          ),
+        ),
       ),
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
