@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../models/todo.dart';
+import '../models/todo.dart' show Todo;
 import '../models/todo_step.dart';
 
 class TodoTile extends StatefulWidget {
